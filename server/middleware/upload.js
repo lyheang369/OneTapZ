@@ -2,7 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 
-const uploadDir = path.join(process.cwd(), 'server', 'uploads');
+const uploadDir = process.env.VERCEL
+  ? path.join('/tmp', 'onetapz-uploads')
+  : path.join(process.cwd(), 'server', 'uploads');
 fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
