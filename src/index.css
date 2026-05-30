@@ -597,6 +597,12 @@ select {
   margin-top: 16px;
 }
 
+.clerk-panel {
+  display: grid;
+  place-items: center;
+  width: min(100%, 480px);
+}
+
 .alert,
 .success {
   border-radius: 8px;
