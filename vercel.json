@@ -7,6 +7,10 @@
     {
       "source": "/uploads/(.*)",
       "destination": "/api/index.js"
+    },
+    {
+      "source": "/((?!api/|assets/|uploads/|favicon.ico|vite.svg).*)",
+      "destination": "/index.html"
     }
   ]
 }
