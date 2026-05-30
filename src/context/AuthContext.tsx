@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { api } from '../lib/api';
-import { readLocalUser, saveLocalUser } from '../lib/localStore';
+import { createLocalAccount, loginLocalAccount, readLocalAccountUser, readLocalUser, saveLocalUser } from '../lib/localStore';
 import type { User } from '../lib/types';
 
 type AuthContextValue = {
@@ -52,6 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
+      if (token.startsWith('local:')) {
+        const localUser = readLocalAccountUser(token.replace('local:', ''));
+        if (alive) setUser(localUser ? normalizeUser(localUser) : null);
+        setLoading(false);
+        return;
+      }
+
       try {
         const { data } = await api.get('/auth/me');
         const nextUser = normalizeUser({ ...data.user, ...readLocalUser(data.user.id) });
@@ -71,18 +78,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token]);
 
   async function login(email: string, password: string) {
-    const { data } = await api.post('/auth/login', { email, password });
-    localStorage.setItem('onetapz_token', data.token);
-    setToken(data.token);
-    const nextUser = normalizeUser({ ...data.user, ...readLocalUser(data.user.id) });
-    setUser(nextUser);
+    try {
+      const { data } = await api.post('/auth/login', { email, password });
+      localStorage.setItem('onetapz_token', data.token);
+      setToken(data.token);
+      const nextUser = normalizeUser({ ...data.user, ...readLocalUser(data.user.id) });
+      setUser(nextUser);
+    } catch {
+      const localUser = normalizeUser(loginLocalAccount(email, password));
+      const localToken = `local:${localUser.id}`;
+      localStorage.setItem('onetapz_token', localToken);
+      setToken(localToken);
+      setUser(localUser);
+    }
   }
 
   async function register(payload: { name: string; email: string; username: string; password: string }) {
-    const { data } = await api.post('/auth/register', payload);
-    localStorage.setItem('onetapz_token', data.token);
-    setToken(data.token);
-    setUser(normalizeUser(data.user));
+    try {
+      const { data } = await api.post('/auth/register', payload);
+      localStorage.setItem('onetapz_token', data.token);
+      setToken(data.token);
+      setUser(normalizeUser(data.user));
+    } catch {
+      const localUser = normalizeUser(createLocalAccount(payload));
+      const localToken = `local:${localUser.id}`;
+      localStorage.setItem('onetapz_token', localToken);
+      setToken(localToken);
+      setUser(localUser);
+    }
   }
 
   async function loginWithTelegram(payload: TelegramLoginPayload) {

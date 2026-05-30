@@ -32,7 +32,7 @@ export function EditProfile() {
 
     const jwt = localStorage.getItem('onetapz_token');
 
-    if (jwt && jwt !== 'demo-token') {
+    if (jwt && jwt !== 'demo-token' && !jwt.startsWith('local:')) {
       const { data } = await api.put('/users/me', form);
       setUser(data.user);
     } else if (user) {

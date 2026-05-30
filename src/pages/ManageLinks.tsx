@@ -31,7 +31,7 @@ export function ManageLinks() {
       setEditingId(null);
       setForm({ title: '', url: '', icon: 'link' });
       const jwt = localStorage.getItem('onetapz_token');
-      if (jwt && jwt !== 'demo-token') await api.put(`/links/${editingId}`, next.find((link) => link._id === editingId));
+      if (jwt && jwt !== 'demo-token' && !jwt.startsWith('local:')) await api.put(`/links/${editingId}`, next.find((link) => link._id === editingId));
       return;
     }
 
@@ -48,7 +48,7 @@ export function ManageLinks() {
 
     const jwt = localStorage.getItem('onetapz_token');
 
-    if (jwt && jwt !== 'demo-token') {
+    if (jwt && jwt !== 'demo-token' && !jwt.startsWith('local:')) {
       const { data } = await api.post('/links', optimistic);
       updateLinks(nextLinks.map((link) => (link._id === optimistic._id ? data.link : link)));
     }
@@ -58,13 +58,13 @@ export function ManageLinks() {
     const next = { ...link, isActive: !link.isActive };
     updateLinks(links.map((item) => (item._id === link._id ? next : item)));
     const jwt = localStorage.getItem('onetapz_token');
-    if (jwt && jwt !== 'demo-token') await api.put(`/links/${link._id}`, next);
+    if (jwt && jwt !== 'demo-token' && !jwt.startsWith('local:')) await api.put(`/links/${link._id}`, next);
   }
 
   async function deleteLink(id: string) {
     updateLinks(links.filter((link) => link._id !== id));
     const jwt = localStorage.getItem('onetapz_token');
-    if (jwt && jwt !== 'demo-token') await api.delete(`/links/${id}`);
+    if (jwt && jwt !== 'demo-token' && !jwt.startsWith('local:')) await api.delete(`/links/${id}`);
   }
 
   function editLink(link: LinkItem) {
