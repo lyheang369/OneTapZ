@@ -22,7 +22,9 @@ export function EditProfile() {
     event.preventDefault();
     setSaved(false);
 
-    if (localStorage.getItem('onetapz_token') !== 'demo-token') {
+    const jwt = localStorage.getItem('onetapz_token');
+
+    if (jwt && jwt !== 'demo-token') {
       const { data } = await api.put('/users/me', form);
       setUser(data.user);
     } else if (user) {

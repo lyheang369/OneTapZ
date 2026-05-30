@@ -18,7 +18,9 @@ export function NfcCardPage() {
     event.preventDefault();
     const next = { ...card, cardId, profileUrl, isActive: true };
     setCard(next);
-    if (localStorage.getItem('onetapz_token') !== 'demo-token') {
+    const jwt = localStorage.getItem('onetapz_token');
+
+    if (jwt && jwt !== 'demo-token') {
       const { data } = await api.post('/nfc/assign', { cardId });
       setCard(data.card);
     }
