@@ -17,6 +17,7 @@
 body {
   min-width: 320px;
   margin: 0;
+  overflow-x: hidden;
   background:
     radial-gradient(circle at 18% 0%, rgba(14, 165, 233, 0.2), transparent 30%),
     linear-gradient(135deg, #07111f 0%, #0f172a 48%, #06111f 100%);
@@ -141,64 +142,89 @@ select {
 }
 
 .site-nav {
-  border-bottom: 1px solid #d7d7dc;
-  background: rgba(255, 255, 255, 0.96);
-  color: #111111;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(7, 17, 31, 0.94);
+  color: #f8fafc;
+  backdrop-filter: blur(16px);
 }
 
 .brand-mark {
   display: inline-flex;
   align-items: center;
   gap: 0.65rem;
-  color: #111111;
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #f8fafc;
   font-size: 1.05rem;
   font-weight: 800;
   text-decoration: none;
 }
 
 .brand-icon {
+  position: relative;
   display: grid;
   width: 38px;
   height: 38px;
   place-items: center;
-  border: 1px solid #111111;
-  background: #ffffff;
-  color: #002fa7;
+  border: 1px solid rgba(56, 189, 248, 0.42);
+  border-radius: 12px;
+  background: linear-gradient(145deg, #0f172a, #123e8a);
+  color: #65b8ee;
+}
+
+.brand-spark {
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  color: #ffffff;
+}
+
+.desktop-nav,
+.desktop-auth {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.nav-toggle {
+  display: none;
 }
 
 .site-nav .nav-link,
 .site-nav .mobile-nav-link {
-  color: #111111;
+  color: #dbeafe;
 }
 
 .site-nav .nav-link.active,
 .site-nav .mobile-nav-link.active {
-  background: #002fa7;
+  background: #2563eb;
   color: #ffffff;
 }
 
-.site-nav .btn-primary,
 .site-nav .btn-ghost,
 .site-nav .btn-icon {
-  border-radius: 0;
-}
-
-.site-nav .btn-ghost,
-.site-nav .btn-icon {
-  border-color: #111111;
-  background: #ffffff;
-  color: #111111;
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f8fafc;
 }
 
 .site-nav .btn-primary {
-  background: #002fa7;
+  background: #2563eb;
   color: #ffffff;
 }
 
+.user-pill {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 999px;
+  background: #b9461f;
+  color: #ffffff;
+  font-weight: 900;
+}
+
 .mobile-menu {
-  border-top: 1px solid #d7d7dc;
-  background: #ffffff;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: #07111f;
 }
 
 .site-page {
@@ -603,6 +629,15 @@ select {
 }
 
 @media (max-width: 900px) {
+  .desktop-nav,
+  .desktop-auth {
+    display: none;
+  }
+
+  .nav-toggle {
+    display: inline-flex;
+  }
+
   .lynk-hero-grid,
   .split-feature {
     grid-template-columns: 1fr;
@@ -643,6 +678,54 @@ select {
   }
 }
 
+@media (max-width: 700px) {
+  .site-nav nav {
+    min-height: 70px;
+  }
+
+  .brand-mark {
+    font-size: 1rem;
+  }
+
+  .brand-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .site-page .hero-title {
+    font-size: clamp(3.4rem, 18vw, 5.6rem);
+  }
+
+  .lynk-hero-grid {
+    min-height: auto;
+    padding: 42px 0 56px;
+  }
+
+  .mockup-stage {
+    min-height: 450px;
+  }
+
+  .mobile-stack.front {
+    width: min(86vw, 300px);
+  }
+
+  .mobile-stack.back,
+  .floating-card {
+    display: none;
+  }
+
+  .creator-strip-inner {
+    justify-content: flex-start;
+  }
+
+  .lynk-section-heading h2,
+  .split-feature h2,
+  .final-cta h2 {
+    font-size: clamp(2.1rem, 12vw, 3.6rem);
+  }
+}
+
 .nav-link {
   padding: 0.6rem 0.8rem;
   font-size: 0.92rem;
@@ -661,7 +744,7 @@ select {
 .nav-link.active,
 .side-link.active,
 .mobile-nav-link.active {
-  background: rgba(56, 189, 248, 0.14);
+  background: rgba(37, 99, 235, 0.22);
   color: white;
 }
 
@@ -708,10 +791,42 @@ select {
   margin-top: 16px;
 }
 
-.clerk-panel {
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #94a3b8;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.telegram-login-box {
   display: grid;
-  place-items: center;
-  width: min(100%, 480px);
+  justify-items: center;
+  gap: 12px;
+}
+
+.telegram-login-fallback {
+  border: 1px dashed rgba(56, 189, 248, 0.32);
+  border-radius: 12px;
+  padding: 14px;
+  color: #cbd5e1;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.telegram-login-fallback span {
+  color: #93c5fd;
+  font-weight: 900;
 }
 
 .alert,
@@ -743,6 +858,7 @@ select {
 .phone-preview {
   min-height: 620px;
   border: 8px solid #101827;
+  background-color: var(--page-bg);
 }
 
 .profile-photo {
@@ -767,6 +883,30 @@ select {
   font-weight: 850;
   text-decoration: none;
   text-align: left;
+}
+
+.phone-preview .profile-link,
+.public-card .profile-link {
+  background: var(--button-bg, rgba(255, 255, 255, 0.14));
+  border-color: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+.button-pill .profile-link {
+  border-radius: 999px;
+}
+
+.button-rounded .profile-link {
+  border-radius: 14px;
+}
+
+.button-square .profile-link {
+  border-radius: 0;
+}
+
+.button-glass .profile-link {
+  background: rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(14px);
 }
 
 .icon-badge {
@@ -805,6 +945,11 @@ select {
 
 .theme-purple {
   background: linear-gradient(145deg, #2e1065, #7c3aed);
+}
+
+.theme-minimal .profile-link,
+.theme-light .profile-link {
+  color: #ffffff;
 }
 
 .step-number {
@@ -852,6 +997,34 @@ select {
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.06);
   color: white;
+}
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 1100px) {
+  .editor-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .editor-grid > div:last-child {
+    max-width: 360px;
+  }
+}
+
+.mini-control {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  color: #94a3b8;
 }
 
 .info-row,
@@ -903,6 +1076,10 @@ select {
   margin-inline: auto;
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(16px);
+}
+
+.public-page {
+  background: var(--page-bg, #0f172a);
 }
 
 .contact-button {

@@ -9,6 +9,9 @@ export const demoUser: User = {
   profileImage:
     'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=320&q=80',
   theme: 'gradient',
+  buttonStyle: 'pill',
+  buttonBackground: '#2563eb',
+  pageBackground: '#0f172a',
   role: 'admin',
   isActive: true,
 };

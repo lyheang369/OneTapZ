@@ -16,6 +16,9 @@ const publicUser = (user) => ({
   bio: user.bio,
   profileImage: user.profileImage,
   theme: user.theme,
+  buttonStyle: user.buttonStyle,
+  buttonBackground: user.buttonBackground,
+  pageBackground: user.pageBackground,
   role: user.role,
   isActive: user.isActive,
 });
@@ -29,7 +32,7 @@ router.put(
   protect,
   upload.single('profileImage'),
   asyncHandler(async (req, res) => {
-    const allowed = ['name', 'username', 'bio', 'theme', 'profileImage'];
+    const allowed = ['name', 'username', 'bio', 'theme', 'profileImage', 'buttonStyle', 'buttonBackground', 'pageBackground'];
 
     for (const field of allowed) {
       if (req.body[field] !== undefined) {

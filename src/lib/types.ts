@@ -1,4 +1,5 @@
 export type ThemeName = 'dark' | 'light' | 'blue' | 'purple' | 'minimal' | 'gradient';
+export type ButtonStyle = 'rounded' | 'pill' | 'square' | 'glass';
 
 export type User = {
   id: string;
@@ -9,6 +10,9 @@ export type User = {
   bio: string;
   profileImage: string;
   theme: ThemeName;
+  buttonStyle: ButtonStyle;
+  buttonBackground: string;
+  pageBackground: string;
   role: 'user' | 'admin';
   isActive?: boolean;
 };

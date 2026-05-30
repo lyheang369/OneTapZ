@@ -1,6 +1,5 @@
 import { Link, NavLink } from 'react-router-dom';
-import { Show, SignInButton, SignUpButton, UserButton } from '@clerk/react';
-import { CreditCard, LogOut, Menu } from 'lucide-react';
+import { Hand, LogOut, Menu, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
@@ -20,16 +19,17 @@ export function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link to="/" className="brand-mark">
           <span className="brand-icon">
-            <CreditCard size={20} />
+            <Hand size={19} />
+            <Sparkles className="brand-spark" size={10} />
           </span>
           <span>OneTapZ</span>
         </Link>
 
-        <button className="btn-icon md:hidden" type="button" onClick={() => setOpen((value) => !value)}>
+        <button className="btn-icon nav-toggle" type="button" onClick={() => setOpen((value) => !value)} aria-label="Open menu">
           <Menu size={20} />
         </button>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="desktop-nav">
           {user &&
             navItems.map((item) => (
               <NavLink key={item.to} to={item.to} className="nav-link">
@@ -43,27 +43,25 @@ export function Navbar() {
           )}
         </div>
 
-        <div className="hidden items-center gap-3 md:flex">
-          <Show when="signed-out">
-            <SignInButton forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
-              <button className="btn-ghost" type="button">
+        <div className="desktop-auth">
+          {!user && (
+            <>
+              <Link className="btn-ghost" to="/login">
                 Sign in
-              </button>
-            </SignInButton>
-            <SignUpButton forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
-              <button className="btn-primary" type="button">
+              </Link>
+              <Link className="btn-primary" to="/register">
                 Sign up
-              </button>
-            </SignUpButton>
-          </Show>
-          <Show when="signed-in">
-            <UserButton />
-          </Show>
+              </Link>
+            </>
+          )}
           {user && (
-            <button className="btn-ghost" type="button" onClick={logout}>
-              <LogOut size={16} />
-              Logout
-            </button>
+            <>
+              <span className="user-pill">{user.name.charAt(0).toUpperCase()}</span>
+              <button className="btn-ghost" type="button" onClick={logout}>
+                <LogOut size={16} />
+                Logout
+              </button>
+            </>
           )}
         </div>
       </nav>
@@ -83,16 +81,12 @@ export function Navbar() {
             </>
           ) : (
             <>
-              <SignInButton forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
-                <button className="btn-ghost w-full justify-center" type="button" onClick={() => setOpen(false)}>
-                  Sign in
-                </button>
-              </SignInButton>
-              <SignUpButton forceRedirectUrl="/dashboard" fallbackRedirectUrl="/dashboard">
-                <button className="btn-primary w-full justify-center" type="button" onClick={() => setOpen(false)}>
-                  Sign up
-                </button>
-              </SignUpButton>
+              <Link className="btn-ghost w-full justify-center" to="/login" onClick={() => setOpen(false)}>
+                Sign in
+              </Link>
+              <Link className="btn-primary w-full justify-center" to="/register" onClick={() => setOpen(false)}>
+                Sign up
+              </Link>
             </>
           )}
         </div>

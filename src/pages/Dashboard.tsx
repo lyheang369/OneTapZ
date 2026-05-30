@@ -6,10 +6,12 @@ import { StatCard } from '../components/StatCard';
 import { useAuth } from '../context/AuthContext';
 import { demoAnalytics, demoLinks } from '../data/demo';
 import { publicProfileUrl } from '../lib/api';
+import { readLocalLinks } from '../lib/localStore';
 
 export function Dashboard() {
   const { user } = useAuth();
   const profileUrl = publicProfileUrl(user?.username || 'zara');
+  const links = user ? readLocalLinks(user.id) : demoLinks;
 
   if (!user) return null;
 
@@ -56,7 +58,7 @@ export function Dashboard() {
             <Link2 size={16} />
             Live profile preview
           </div>
-          <PhonePreview user={user} links={demoLinks} />
+          <PhonePreview user={user} links={links} />
         </div>
       </div>
     </DashboardLayout>

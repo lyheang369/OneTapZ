@@ -1,11 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { useParams } from 'react-router-dom';
 import QRCode from 'qrcode';
 import { Download, Mail, Phone, QrCode, Share2 } from 'lucide-react';
 import { IconBadge } from '../components/IconBadge';
 import { api } from '../lib/api';
 import { demoLinks, demoUser } from '../data/demo';
+import { readLastLocalProfile, readLocalLinks } from '../lib/localStore';
 import type { LinkItem, User } from '../lib/types';
+
+type ProfileStyle = CSSProperties & {
+  '--button-bg': string;
+  '--page-bg': string;
+};
 
 export function PublicProfile() {
   const { username = 'zara' } = useParams();
@@ -25,7 +32,13 @@ export function PublicProfile() {
         setProfile(data.user);
         setLinks(data.links);
       } catch {
-        setProfile({ ...demoUser, username });
+        const localProfile = readLastLocalProfile();
+        if (localProfile?.username === username) {
+          setProfile(localProfile);
+          setLinks(readLocalLinks(localProfile.id));
+        } else {
+          setProfile({ ...demoUser, username });
+        }
       }
     }
 
@@ -42,10 +55,13 @@ export function PublicProfile() {
   }
 
   return (
-    <main className={`public-page theme-${profile.theme}`}>
+    <main
+      className={`public-page theme-${profile.theme} button-${profile.buttonStyle || 'pill'}`}
+      style={{ '--button-bg': profile.buttonBackground || '#2563eb', '--page-bg': profile.pageBackground || '#0f172a' } as ProfileStyle}
+    >
       <section className="mx-auto min-h-svh w-full max-w-md px-5 py-8">
         <div className="public-card">
-          <img className="profile-photo" src={profile.profileImage} alt={profile.name} />
+          {profile.profileImage ? <img className="profile-photo" src={profile.profileImage} alt={profile.name} /> : <div className="profile-photo" />}
           <h1 className="mt-4 text-center text-3xl font-black">{profile.name}</h1>
           <p className="text-center text-sm opacity-75">@{profile.username}</p>
           <p className="mt-4 text-center leading-7 opacity-90">{profile.bio}</p>
@@ -87,7 +103,7 @@ export function PublicProfile() {
           )}
           <div className="mt-5 flex items-center justify-center gap-2 text-xs opacity-70">
             <QrCode size={14} />
-            onetapz.link/{profile.username}
+            {window.location.host}/{profile.username}
           </div>
         </div>
       </section>
