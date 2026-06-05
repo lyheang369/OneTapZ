@@ -40,8 +40,13 @@ export function Home() {
       <section className="lynk-hero">
         <div className="page-shell lynk-hero-grid">
           <div className="lynk-hero-copy">
-            <p className="eyebrow">Digital profile + NFC card</p>
-            <h1 className="hero-title">One profile for every tap.</h1>
+            <p className="eyebrow">Digital profile // NFC card</p>
+            <h1 className="hero-title">
+              One tap.{' '}
+              <span className="glitch accent" data-text="All your links.">
+                All your links.
+              </span>
+            </h1>
             <p className="hero-text">
               Build a mobile-first profile for links, socials, contact details, portfolio work, QR codes,
               and NFC card sharing.
@@ -92,13 +97,13 @@ export function Home() {
         </div>
       </section>
 
-      <section className="creator-strip">
-        <div className="page-shell creator-strip-inner">
-          <span>Built for</span>
-          <strong>students</strong>
-          <strong>creators</strong>
-          <strong>freelancers</strong>
-          <strong>young professionals</strong>
+      <section className="creator-strip" aria-label="Built for students, creators, freelancers, and young professionals">
+        <div className="creator-strip-inner" aria-hidden="true">
+          {Array.from({ length: 2 }).map((_, group) =>
+            ['students', '✦', 'creators', '✦', 'freelancers', '✦', 'young professionals', '✦'].map((word, i) => (
+              <strong key={`${group}-${i}`}>{word}</strong>
+            )),
+          )}
         </div>
       </section>
 
