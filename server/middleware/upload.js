@@ -1,19 +1,8 @@
-import fs from 'fs';
-import path from 'path';
 import multer from 'multer';
 
-const uploadDir = process.env.VERCEL
-  ? path.join('/tmp', 'onetapz-uploads')
-  : path.join(process.cwd(), 'server', 'uploads');
-fs.mkdirSync(uploadDir, { recursive: true });
-
-const storage = multer.diskStorage({
-  destination: uploadDir,
-  filename: (_req, file, cb) => {
-    const safeName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '-').toLowerCase();
-    cb(null, `${Date.now()}-${safeName}`);
-  },
-});
+// Keep the uploaded file in memory; storeImage() decides where it lands
+// (durable Vercel Blob in production, local disk in development).
+const storage = multer.memoryStorage();
 
 export const upload = multer({
   storage,

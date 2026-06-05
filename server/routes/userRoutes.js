@@ -5,6 +5,7 @@ import Analytics from '../models/Analytics.js';
 import { protect } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { storeImage } from '../utils/storeImage.js';
 
 const router = express.Router();
 
@@ -41,7 +42,7 @@ router.put(
     }
 
     if (req.file) {
-      req.user.profileImage = `/uploads/${req.file.filename}`;
+      req.user.profileImage = await storeImage(req.file);
     }
 
     await req.user.save();
