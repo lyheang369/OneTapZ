@@ -61,10 +61,14 @@ export function PublicProfile() {
     >
       <section className="mx-auto min-h-svh w-full max-w-md px-5 py-8">
         <div className="public-card">
-          {profile.profileImage ? <img className="profile-photo" src={profile.profileImage} alt={profile.name} /> : <div className="profile-photo" />}
-          <h1 className="mt-4 text-center text-3xl font-black">{profile.name}</h1>
-          <p className="text-center text-sm opacity-75">@{profile.username}</p>
-          <p className="mt-4 text-center leading-7 opacity-90">{profile.bio}</p>
+          {profile.profileImage ? (
+            <img className="profile-photo" src={profile.profileImage} alt={profile.name} width={112} height={112} />
+          ) : (
+            <div className="profile-photo" />
+          )}
+          <h1 className="profile-name">{profile.name}</h1>
+          <p className="profile-handle">@{profile.username}</p>
+          {profile.bio && <p className="profile-bio">{profile.bio}</p>}
 
           <div className="mt-5 grid grid-cols-3 gap-2">
             <a className="contact-button" href="mailto:hello@onetapz.link">
@@ -101,11 +105,14 @@ export function PublicProfile() {
               </a>
             </div>
           )}
-          <div className="mt-5 flex items-center justify-center gap-2 text-xs opacity-70">
+          <div className="profile-url">
             <QrCode size={14} />
             {window.location.host}/{profile.username}
           </div>
         </div>
+        <p className="profile-foot">
+          Powered by <strong>OneTapZ</strong> · one tap, all your links
+        </p>
       </section>
     </main>
   );
