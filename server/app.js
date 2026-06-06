@@ -20,9 +20,16 @@ const __dirname = path.dirname(__filename);
 let dbReady;
 
 app.use(async (_req, _res, next) => {
-  dbReady ||= connectDB();
-  await dbReady;
-  next();
+  try {
+    if (!dbReady) dbReady = connectDB();
+    await dbReady;
+    next();
+  } catch (err) {
+    // Don't cache the failed connection — let the next request retry instead
+    // of permanently poisoning this warm serverless instance.
+    dbReady = undefined;
+    next(err);
+  }
 });
 
 app.use(
