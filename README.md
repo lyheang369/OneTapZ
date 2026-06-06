@@ -36,19 +36,36 @@ The navigation includes Clerk sign-in, sign-up, and signed-in user controls. The
 
 Set `MONGO_URI` in `.env` using your MongoDB Atlas host and credentials. Keep real credentials out of committed files.
 
-## Sample Profile
+## Demo profile (class demo)
 
-To seed a sample profile into MongoDB after configuring `MONGO_URI`:
+The public profile page — the page the NFC card opens — lives at `/<username>`
+and is what to show in the live demo. A polished demo profile is seeded for you:
+
+- **Live:** https://onetapz.me/zara
+
+### Edit the demo content (no dashboard needed)
+
+All demo content is in one config-style file: **`server/scripts/seed.js`**.
+Edit the `demoUser` fields (name, bio, `profileImage`, `pageBackground`,
+`buttonBackground`) and the `Link.insertMany([...])` array (each link's `title`,
+`url`, and `icon`), then run:
 
 ```bash
 npm run seed
 ```
 
-Sample public profile:
+Supported link `icon` values: `instagram`, `tiktok`, `linkedin`, `youtube`,
+`twitter`/`x`, `github`, `mail`, `portfolio`, `music`, `link`.
 
-```text
-http://localhost:5173/zara
-```
+> Prefer a UI? Log in at `/login` as the demo account (`demo@onetapz.link` /
+> `Demo1234!`) and edit everything from the dashboard instead.
+
+### NFC + QR
+
+The NFC card just stores the deployed URL (`https://onetapz.me/zara`) — write it
+with a phone app like **NFC Tools**; no card programming needed. The profile page
+also renders a **QR code** (with a Download button) pointing to the same URL for
+the "scan to view" fallback.
 
 ## API Routes
 
