@@ -36,8 +36,13 @@ const HELP = [
 
 async function cmdMyProfile(user, chatId) {
   const url = `${profileBase()}/${user.username}`;
-  const png = await QRCode.toBuffer(url, { width: 512, margin: 2 });
-  await sendTelegramPhoto(chatId, png, `Your OneTapZ profile:\n${esc(url)}`);
+  try {
+    const png = await QRCode.toBuffer(url, { width: 512, margin: 2 });
+    await sendTelegramPhoto(chatId, png, `Your OneTapZ profile:\n${esc(url)}`);
+  } catch (err) {
+    console.error('Telegram QR generation failed', err?.message);
+    await sendTelegramMessage(chatId, `Your OneTapZ profile:\n${esc(url)}`);
+  }
 }
 
 async function cmdStats(user, chatId) {
@@ -74,6 +79,7 @@ async function cmdAddLink(user, args, chatId) {
       title = url;
     }
   }
+  title = title.slice(0, 100).trim();
   const count = await Link.countDocuments({ userId: user._id });
   await Link.create({
     userId: user._id,
