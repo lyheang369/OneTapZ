@@ -12,6 +12,8 @@ import nfcRoutes from './routes/nfcRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
+import shopRoutes from './routes/shopRoutes.js';
+import telegramRoutes from './routes/telegramRoutes.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -57,6 +59,8 @@ app.use('/api/links', linkRoutes);
 app.use('/api/nfc', nfcRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/shop', shopRoutes);
+app.use('/api/telegram', telegramRoutes);
 
 app.use((err, _req, res, _next) => {
   console.error(err);
