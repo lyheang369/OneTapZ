@@ -12,6 +12,7 @@ OneTapZ is a digital-profile / NFC-card / link-in-bio app: a Vite + React 19 fro
 - `npm run lint` — ESLint (flat config). **Frontend only**: the config matches `**/*.{ts,tsx}`, so `server/*.js` is never linted — `tsc -b` also only covers the TS frontend, so the Express server has no automated static check at all.
 - `npm run start` — Express server standalone (production entry).
 - `npm run seed` — seed/refresh the demo profile in MongoDB (needs `MONGO_URI`); see "Demo profile" below.
+- `npm run bot:setup` — **one-time** Telegram setup: registers the `/api/telegram/webhook` URL (+ secret) and the `/`-menu with Telegram. Needs `TELEGRAM_BOT_TOKEN`, `TELEGRAM_WEBHOOK_SECRET`, and a **production HTTPS** `PUBLIC_BASE_URL` (can't point at localhost). Re-run after the webhook URL or secret changes.
 - `vercel --prod --yes` — **deploy.** Production ships straight from the **working tree** via the Vercel CLI (project `onetapz`), **not** from git pushes — so the GitHub repo routinely drifts behind production; commit/push separately. `.github/workflows/keep-warm.yml` (pings `/api/health` to cut cold starts) only runs once on GitHub's `main`, so it needs a push to take effect.
 - `vercel env add <NAME> production` — add a secret via the secure prompt (don't paste secrets into committed files); `vercel env pull <file> --environment=production` to fetch non-sensitive vars locally for a one-off script.
 
@@ -63,11 +64,11 @@ The frontend keeps working **even when the API is unreachable**, falling back to
 `GET /api/profile/:username` (`profileRoutes.js`, **not** the dead duplicate in `userRoutes.js`) sets `Cache-Control: public, s-maxage=30, stale-while-revalidate=60` so Vercel's edge serves repeat NFC/QR opens without hitting the function or DB. For this to work the client fetches it via **`publicApi`** (an axios instance with **no** `Authorization` interceptor) — an auth header would make the response uncacheable. Because cached hits skip the handler, **view counting is done by the client** (`POST /api/analytics/view`), not in the GET. Profile edits propagate within the TTL; the owner viewing their own page bypasses the cache with a unique query param.
 
 ### Backend layering (`server/`)
-Feature routers mount under `/api/{auth,profile,users,links,nfc,analytics,admin,shop}` in `app.js`.
+Feature routers mount under `/api/{auth,profile,users,links,nfc,analytics,admin,shop,telegram}` in `app.js`.
 - Routes use the `asyncHandler` wrapper so thrown errors reach the single error middleware in `app.js`; throw an `Error` with a `.status` to control the code.
 - `protect` (JWT bearer) + `adminOnly` live in `middleware/auth.js`; `adminRoutes` applies both via `router.use(...)`. JWTs signed in `utils/token.js` (7-day, payload `{ id, role }`).
 - Auth/user routes return a hand-built `publicUser(...)` projection (duplicated in `authRoutes.js` **and** `userRoutes.js` — keep both in sync with the `User` type in `src/lib/types.ts`). `password` is `select: false`. The public profile route instead returns the raw doc via `.select('-password -email')`, so new public fields appear automatically there but must be added to both `publicUser` projections to reach the dashboard.
-- `server/utils/telegram.js`: `verifyTelegramLoginPayload` + `sendTelegramMessage` (best-effort, logs failures). Anything sent with `parse_mode: 'HTML'` **must HTML-escape user-controlled fields** (an `esc()` helper guards the order notifications — buyer name/phone/handle are injection vectors).
+- `server/utils/telegram.js`: `verifyTelegramLoginPayload`, `sendTelegramMessage` + `sendTelegramPhoto` (best-effort, log failures), and `htmlEscape`. Anything sent with `parse_mode: 'HTML'` **must HTML-escape user-controlled fields** (injection vector). Two escape helpers exist — the shared `htmlEscape` (used by the inbound bot router) and a local `esc()` in `shopRoutes.js` (guards order notifications: buyer name/phone/handle).
 
 ### Shop + KHQR payments
 The store at `/shop` sells fixed NFC-card products and accepts **KHQR (Bakong)** via **CamRapidPay** (`server/utils/camrapidpay.js`, docs in `.claude/skills/camrapidpay`).
