@@ -11,11 +11,14 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "start": "node server/index.js",
-    "seed": "node server/scripts/seed.js"
+    "seed": "node server/scripts/seed.js",
+    "bot:setup": "node server/scripts/setTelegramWebhook.js"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.0",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.4.0",
+    "@vercel/speed-insights": "^2.0.0",
     "axios": "^1.16.1",
     "bcryptjs": "^3.0.3",
     "bootstrap-icons": "^1.13.1",
