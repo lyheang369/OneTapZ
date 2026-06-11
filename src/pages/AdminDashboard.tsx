@@ -1,53 +1,42 @@
-import { Shield, ToggleLeft, Trash2 } from 'lucide-react';
+import { useState } from 'react';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { demoCard, demoUser } from '../data/demo';
+import { AdminStats } from '../components/admin/AdminStats';
+import { AdminUsers } from '../components/admin/AdminUsers';
+import { AdminOrders } from '../components/admin/AdminOrders';
+import { AdminCards } from '../components/admin/AdminCards';
+
+const TABS = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'users', label: 'Users' },
+  { id: 'orders', label: 'Orders' },
+  { id: 'cards', label: 'NFC Cards' },
+] as const;
+
+type TabId = (typeof TABS)[number]['id'];
 
 export function AdminDashboard() {
-  const users = [demoUser, { ...demoUser, id: '2', name: 'Nika Chen', username: 'nika', email: 'nika@example.com', isActive: true }];
-  const cards = [demoCard, { ...demoCard, _id: '2', cardId: 'OTZ-2026-188', isActive: false }];
+  const [tab, setTab] = useState<TabId>('overview');
 
   return (
     <DashboardLayout title="Admin dashboard">
-      <div className="grid gap-6 xl:grid-cols-2">
-        <section className="panel p-6">
-          <div className="mb-4 flex items-center gap-2 text-sky-300">
-            <Shield size={18} />
-            Users
-          </div>
-          <div className="space-y-3">
-            {users.map((user) => (
-              <div key={user.id} className="admin-row">
-                <div>
-                  <p className="font-bold text-white">{user.name}</p>
-                  <p className="text-sm text-slate-400">@{user.username}</p>
-                </div>
-                <div className="flex gap-2">
-                  <button className="btn-icon" type="button">
-                    <ToggleLeft size={17} />
-                  </button>
-                  <button className="btn-icon" type="button">
-                    <Trash2 size={17} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-        <section className="panel p-6">
-          <h2 className="mb-4 text-xl font-bold text-white">NFC cards</h2>
-          <div className="space-y-3">
-            {cards.map((card) => (
-              <div key={card._id} className="admin-row">
-                <div>
-                  <p className="font-bold text-white">{card.cardId}</p>
-                  <p className="text-sm text-slate-400">{card.profileUrl}</p>
-                </div>
-                <span className={card.isActive ? 'status-on' : 'status-off'}>{card.isActive ? 'active' : 'inactive'}</span>
-              </div>
-            ))}
-          </div>
-        </section>
+      <div className="profile-tabs mb-6" role="tablist">
+        {TABS.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            role="tab"
+            className={`profile-tab ${tab === item.id ? 'active' : ''}`}
+            aria-selected={tab === item.id}
+            onClick={() => setTab(item.id)}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
+      {tab === 'overview' && <AdminStats />}
+      {tab === 'users' && <AdminUsers />}
+      {tab === 'orders' && <AdminOrders />}
+      {tab === 'cards' && <AdminCards />}
     </DashboardLayout>
   );
 }
