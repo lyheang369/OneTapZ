@@ -304,8 +304,8 @@ a {
   width: 38px;
   height: 38px;
   place-items: center;
-  border-radius: 8px;
-  background: var(--acid);
+  border-radius: 10px;
+  background: #0a0a0a;
   color: #050505;
   box-shadow: 3px 3px 0 var(--magenta);
 }
@@ -907,6 +907,771 @@ a {
   box-shadow: 0 0 0 3px rgba(204, 255, 0, 0.15);
 }
 
+/* Color pickers: render a proper swatch instead of a collapsed text input. */
+.input[type='color'] {
+  height: 48px;
+  padding: 6px;
+  cursor: pointer;
+}
+.input[type='color']::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.input[type='color']::-webkit-color-swatch {
+  border: none;
+  border-radius: 8px;
+}
+.input[type='color']::-moz-color-swatch {
+  border: none;
+  border-radius: 8px;
+}
+
+/* Visual theme / button-style pickers (Edit Profile). */
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+}
+.theme-swatch {
+  position: relative;
+  height: 52px;
+  border-radius: 12px;
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  /* The .theme-* class sets --page-bg; paint the swatch with it. */
+  background: var(--page-bg, #1a1a1a);
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+.theme-swatch::before {
+  content: '';
+  position: absolute;
+  inset: auto 8px 18px auto;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--primary, #888);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+.theme-swatch:hover {
+  transform: translateY(-2px);
+}
+.theme-swatch.active {
+  border-color: var(--acid);
+  box-shadow: 0 0 0 3px rgba(204, 255, 0, 0.2);
+}
+.theme-swatch span {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 2px 0;
+  background: rgba(0, 0, 0, 0.45);
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  text-align: center;
+  color: #fff;
+  text-transform: capitalize;
+}
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.style-chip {
+  padding: 0.5rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  text-transform: capitalize;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease, background 120ms ease;
+}
+.style-chip:hover {
+  border-color: var(--acid);
+}
+.style-chip.active {
+  background: var(--acid);
+  border-color: var(--acid);
+  color: #0a0a0a;
+  font-weight: 700;
+}
+
+/* Searchable icon picker (Manage Links). */
+.icon-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  transition: border-color 120ms ease;
+}
+.icon-picker-trigger:hover {
+  border-color: var(--acid);
+}
+.icon-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+.icon-modal-card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 460px;
+  max-height: 78vh;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background: #0d0d0d;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+.icon-modal-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.icon-search {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 8px;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius);
+  color: var(--ink-dim);
+}
+.icon-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-mono);
+}
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+  gap: 8px;
+  overflow-y: auto;
+  padding: 2px;
+}
+.icon-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--ink);
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease;
+}
+.icon-cell:hover {
+  border-color: var(--acid);
+}
+.icon-cell.active {
+  border-color: var(--acid);
+  background: rgba(204, 255, 0, 0.12);
+}
+.icon-cell span {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 1.2;
+  color: var(--ink-dim);
+  text-align: center;
+  word-break: break-word;
+}
+.icon-empty {
+  padding: 24px;
+  text-align: center;
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+/* Edit-link popup card (Manage Links). */
+.edit-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 86vh;
+  overflow-y: auto;
+  padding: 22px;
+}
+
+/* Unsaved-changes toast (Edit Profile), pinned top-right below the navbar. */
+.save-toast {
+  position: fixed;
+  top: 80px;
+  right: 18px;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px 10px 14px;
+  border: 1px solid var(--acid);
+  border-radius: 12px;
+  background: rgba(10, 10, 10, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.5);
+  animation: save-toast-in 200ms ease;
+}
+.save-toast-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--acid);
+  box-shadow: 0 0 0 4px rgba(204, 255, 0, 0.18);
+}
+.save-toast-btn {
+  margin-left: 4px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: var(--acid);
+  color: #0a0a0a;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+.save-toast-btn:hover {
+  filter: brightness(1.05);
+}
+@keyframes save-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .save-toast {
+    animation: none;
+  }
+}
+
+/* Edit Profile tabs (Profile / Contact / Appearance). */
+.profile-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.profile-tab {
+  flex: 1;
+  padding: 0.55rem 0.6rem;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+.profile-tab:hover {
+  color: var(--ink);
+}
+.profile-tab.active {
+  background: var(--acid);
+  color: #0a0a0a;
+}
+
+/* Feature toggle row (e.g. Show Save-contact button). */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+}
+.toggle-row > span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+.toggle-row .toggle-hint {
+  color: var(--ink-dim);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
+.toggle-row input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  accent-color: var(--acid);
+  cursor: pointer;
+}
+
+/* ============================================================
+   SHOP (KHQR checkout)
+   ============================================================ */
+.hero-cta-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.shop-wrap {
+  padding-top: 48px;
+  padding-bottom: 80px;
+}
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+.shop-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px;
+}
+.shop-card-icon {
+  color: var(--acid);
+}
+.shop-card h3 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--ink);
+}
+.shop-card-tag {
+  flex: 1;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+.shop-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+.shop-price {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--acid);
+}
+.qty-stepper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.qty-stepper button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--ink);
+  cursor: pointer;
+}
+.qty-stepper button:hover {
+  border-color: var(--acid);
+}
+.qty-stepper span {
+  min-width: 18px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--ink);
+}
+.shop-checkout {
+  margin-top: 22px;
+}
+.shop-telegram {
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+}
+.shop-tg-prompt {
+  margin-bottom: 10px;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+}
+.shop-tg-connected {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--acid);
+}
+.shop-tg-connected strong {
+  color: var(--ink);
+}
+
+.shop-summary {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.shop-summary-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--ink-dim);
+}
+.shop-summary-row.total {
+  margin-top: 6px;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--acid);
+}
+
+.khqr-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+}
+/* KHQR-styled payment card (Bakong look): white card, red header, center logo. */
+.khqr-pay {
+  width: 100%;
+  max-width: 340px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+.khqr-pay-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: #e2231a;
+  color: #fff;
+}
+.khqr-logo-badge {
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #fff;
+  color: #e2231a;
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+}
+.khqr-pay-label {
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+.khqr-pay-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 22px 8px;
+  text-align: center;
+}
+.khqr-merchant {
+  color: #64748b;
+  font-size: 0.9rem;
+}
+.khqr-amount2 {
+  margin-top: 2px;
+}
+.khqr-amount2 strong {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+.khqr-amount2 span {
+  color: #94a3b8;
+  font-weight: 700;
+}
+.khqr-dash {
+  width: 100%;
+  margin: 14px 0;
+  border-top: 2px dashed #e2e8f0;
+}
+.khqr-qr-wrap {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+.khqr-qr-img {
+  width: 220px;
+  height: 220px;
+  border-radius: 10px;
+}
+.khqr-qr-img.skeleton-box {
+  background: #f1f5f9;
+}
+.khqr-qr-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 46px;
+  height: 46px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px #fff;
+}
+.khqr-expiry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #16a34a;
+}
+.khqr-waiting2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: #94a3b8;
+}
+.khqr-browser {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #e2231a;
+}
+.khqr-steps {
+  padding: 16px 22px;
+  border-top: 1px solid #eef2f7;
+}
+.khqr-tagline {
+  text-align: center;
+  font-style: italic;
+  font-weight: 800;
+  color: #0f172a;
+}
+.khqr-steps ol {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.khqr-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: #334155;
+}
+.khqr-steps li span {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #0f172a;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.khqr-pay-foot {
+  padding: 12px;
+  text-align: center;
+  background: #f3f4f6;
+  color: #64748b;
+  font-size: 0.72rem;
+}
+.khqr-cancel {
+  width: 100%;
+  padding: 12px;
+  background: #fff;
+  color: #94a3b8;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-top: 1px solid #eef2f7;
+}
+.khqr-cancel:hover {
+  color: #475569;
+}
+
+/* Paid / expired result cards. */
+.khqr-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 340px;
+  padding: 32px 24px;
+  border-radius: 18px;
+  background: #fff;
+  color: #0f172a;
+  text-align: center;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+}
+.khqr-state h2 {
+  font-size: 1.3rem;
+  font-weight: 800;
+}
+.khqr-state p {
+  font-size: 0.88rem;
+  color: #64748b;
+  max-width: 28ch;
+}
+.khqr-state-badge {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+}
+.khqr-state-badge.ok {
+  background: #16a34a;
+  color: #fff;
+}
+.khqr-state-badge.expired {
+  background: #fee2e2;
+  color: #e2231a;
+}
+
+/* Invoice page */
+.invoice-wrap {
+  padding-top: 56px;
+  padding-bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.invoice-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 26px;
+}
+.invoice-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.invoice-ref {
+  margin-top: 4px;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--ink);
+  word-break: break-all;
+}
+.invoice-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.invoice-badge.inv-paid {
+  background: rgba(22, 163, 74, 0.15);
+  color: #4ade80;
+}
+.invoice-badge.inv-pending {
+  background: rgba(204, 255, 0, 0.14);
+  color: var(--acid);
+}
+.invoice-badge.inv-expired {
+  background: rgba(226, 35, 26, 0.15);
+  color: #fca5a5;
+}
+.invoice-lines {
+  margin-top: 22px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+.invoice-line {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+.invoice-qty {
+  color: var(--ink-dim);
+}
+.invoice-line.total {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--acid);
+}
+.invoice-meta {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 0.82rem;
+  color: var(--ink-dim);
+}
+.invoice-note {
+  margin-top: 16px;
+  font-size: 0.88rem;
+  color: var(--ink-dim);
+}
+.invoice-note.ok {
+  color: #4ade80;
+}
+.invoice-note.bad {
+  color: #fca5a5;
+}
+.invoice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
 .field-label {
   display: grid;
   gap: 0.45rem;
@@ -1130,6 +1895,36 @@ a {
   color: var(--ink-dim);
 }
 
+/* Admin overview metric cards. */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+.metric-card {
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+}
+.metric-value {
+  color: var(--acid);
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.metric-label {
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+}
+.metric-hint {
+  margin-top: 4px;
+  color: var(--ink-dim);
+  font-size: 0.75rem;
+}
+
 /* ============================================================
    PUBLIC PROFILE / PHONE PREVIEW
    ============================================================ */
@@ -1139,27 +1934,39 @@ a {
   background: var(--page-bg, #0a0a0a);
 }
 
-.phone-preview,
-.public-card {
-  width: min(100%, 340px);
-  border-radius: 26px;
-  padding: 22px;
-  color: #fff;
-  box-shadow: 0 24px 75px rgba(0, 0, 0, 0.55);
-}
-
-.phone-preview {
-  min-height: 620px;
-  border: 8px solid #0a0a0a;
-  background-color: var(--page-bg);
-}
-
 .public-card {
   width: 100%;
   min-height: calc(100svh - 65px);
   margin-inline: auto;
-  background: rgba(10, 10, 10, 0.5);
-  backdrop-filter: blur(16px);
+  border-radius: 26px;
+  padding: 22px;
+}
+
+/* Phone frame for the edit-page live preview. It IS a .public-page, so every
+   theme token applies exactly as on the real page (WYSIWYG); the bezel and
+   fixed sizing just keep it preview-shaped. */
+.public-page.phone-frame {
+  min-height: 0;
+  width: min(100%, 340px);
+  border: 9px solid #0a0a0a;
+  border-radius: 32px;
+  padding: 14px;
+  overflow: hidden;
+}
+.public-page.phone-frame .public-card {
+  min-height: 0;
+  border-radius: 22px;
+  padding: 22px 16px 24px;
+}
+.phone-foot {
+  margin-top: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
 }
 
 .profile-photo {
@@ -1225,6 +2032,10 @@ a {
 .icon-badge svg {
   width: 18px;
   height: 18px;
+}
+/* Brand marks (simple-icons) are solid filled paths; lucide icons stay stroked
+   so their inner detail (envelope, link, $, globe…) renders correctly. */
+.icon-badge .brand-svg {
   fill: currentColor;
 }
 
@@ -1250,29 +2061,194 @@ a {
   padding: 8px;
 }
 
-/* user-selectable profile themes (product feature) */
-.theme-gradient {
-  background: conic-gradient(from 210deg at 30% 20%, #ccff00, #ff1f9c, #19e3ff, #ccff00);
+/* ============================================================
+   THEME LIBRARY — each theme is a full token set, so selecting one
+   recolors the entire profile (background, surfaces, text, accents,
+   borders). Grouped `.theme-*` (swatches/preview) + `.public-page.theme-*`
+   (live page; higher specificity to win over the default tokens).
+   ============================================================ */
+/* Acid Pop — the OneTapZ site identity (acid lime + magenta on near-black). */
+.theme-acid,
+.public-page.theme-acid {
+  --page-bg:
+    radial-gradient(120% 60% at 50% -10%, rgba(204, 255, 0, 0.12), transparent 60%),
+    radial-gradient(120% 60% at 50% 110%, rgba(255, 31, 156, 0.18), transparent 60%),
+    #060606;
+  --surface: rgba(15, 15, 15, 0.6);
+  --surface-solid: #0c0c0c;
+  --border: rgba(204, 255, 0, 0.22);
+  --text: #f4f4ec;
+  --muted: #8f8f86;
+  --primary: #ccff00;
+  --on-primary: #0a0a0a;
+  --ring: rgba(204, 255, 0, 0.4);
 }
-.theme-dark {
-  background: linear-gradient(150deg, #0a0a0a, #1a1a1a);
+.theme-dark,
+.public-page.theme-dark {
+  --page-bg:
+    radial-gradient(120% 60% at 50% -10%, rgba(0, 229, 255, 0.16), transparent 60%),
+    radial-gradient(120% 60% at 50% 110%, rgba(37, 99, 235, 0.22), transparent 60%),
+    #020617;
+  --surface: rgba(8, 13, 30, 0.55);
+  --surface-solid: #0b1226;
+  --border: rgba(255, 255, 255, 0.14);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --primary: #38bdf8;
+  --on-primary: #04222e;
+  --ring: rgba(56, 189, 248, 0.4);
+}
+.theme-gradient,
+.public-page.theme-gradient {
+  --page-bg: conic-gradient(from 210deg at 30% 20%, #ccff00, #ff1f9c, #19e3ff, #ccff00);
+  --surface: rgba(10, 6, 20, 0.5);
+  --surface-solid: #15081f;
+  --border: rgba(255, 255, 255, 0.22);
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.82);
+  --primary: #ff1f9c;
+  --on-primary: #ffffff;
+  --ring: rgba(255, 31, 156, 0.45);
+}
+.theme-blue,
+.public-page.theme-blue {
+  --page-bg: linear-gradient(150deg, #041f3f, #0b3b6b 60%, #1d6fb8);
+  --surface: rgba(8, 20, 40, 0.5);
+  --surface-solid: #0a1f3d;
+  --border: rgba(120, 180, 255, 0.2);
+  --text: #eef6ff;
+  --muted: #9db8da;
+  --primary: #38bdf8;
+  --on-primary: #04243f;
+  --ring: rgba(56, 189, 248, 0.4);
+}
+.theme-purple,
+.public-page.theme-purple {
+  --page-bg: linear-gradient(150deg, #160a2e, #3b0764 60%, #6d28d9);
+  --surface: rgba(20, 10, 40, 0.5);
+  --surface-solid: #1b0c33;
+  --border: rgba(200, 160, 255, 0.2);
+  --text: #f5f3ff;
+  --muted: #c4b5fd;
+  --primary: #a855f7;
+  --on-primary: #ffffff;
+  --ring: rgba(168, 85, 247, 0.45);
+}
+.theme-sunset,
+.public-page.theme-sunset {
+  --page-bg: linear-gradient(155deg, #2a0a18, #7a2d12 55%, #c4621c);
+  --surface: rgba(40, 15, 12, 0.5);
+  --surface-solid: #2a1108;
+  --border: rgba(255, 180, 120, 0.22);
+  --text: #fff7ed;
+  --muted: #fdba74;
+  --primary: #fb923c;
+  --on-primary: #3a1404;
+  --ring: rgba(251, 146, 60, 0.45);
+}
+.theme-forest,
+.public-page.theme-forest {
+  --page-bg: linear-gradient(155deg, #03150f, #0a3d2a 60%, #127a52);
+  --surface: rgba(6, 30, 20, 0.5);
+  --surface-solid: #06231a;
+  --border: rgba(110, 231, 183, 0.2);
+  --text: #ecfdf5;
+  --muted: #6ee7b7;
+  --primary: #10b981;
+  --on-primary: #03261b;
+  --ring: rgba(16, 185, 129, 0.4);
+}
+.theme-ocean,
+.public-page.theme-ocean {
+  --page-bg: linear-gradient(155deg, #021a26, #0a4d5e 55%, #1597b8);
+  --surface: rgba(6, 30, 40, 0.5);
+  --surface-solid: #062430;
+  --border: rgba(103, 232, 249, 0.2);
+  --text: #ecfeff;
+  --muted: #67e8f9;
+  --primary: #22d3ee;
+  --on-primary: #042e38;
+  --ring: rgba(34, 211, 238, 0.42);
+}
+.theme-rose,
+.public-page.theme-rose {
+  --page-bg: linear-gradient(155deg, #1a0610, #7a1f4a 60%, #e23b76);
+  --surface: rgba(40, 8, 22, 0.5);
+  --surface-solid: #270915;
+  --border: rgba(253, 164, 175, 0.22);
+  --text: #fff1f2;
+  --muted: #fda4af;
+  --primary: #fb7185;
+  --on-primary: #3f0716;
+  --ring: rgba(251, 113, 133, 0.45);
+}
+.theme-aurora,
+.public-page.theme-aurora {
+  --page-bg: linear-gradient(155deg, #0a0420, #1d6b4a 50%, #6b3df0);
+  --surface: rgba(16, 10, 36, 0.5);
+  --surface-solid: #120a26;
+  --border: rgba(196, 181, 253, 0.2);
+  --text: #f5f3ff;
+  --muted: #c4b5fd;
+  --primary: #8b5cf6;
+  --on-primary: #ffffff;
+  --ring: rgba(139, 92, 246, 0.45);
+}
+.theme-mono,
+.public-page.theme-mono {
+  --page-bg: #060606;
+  --surface: rgba(255, 255, 255, 0.04);
+  --surface-solid: #111111;
+  --border: rgba(255, 255, 255, 0.14);
+  --text: #fafafa;
+  --muted: #a1a1aa;
+  --primary: #fafafa;
+  --on-primary: #0a0a0a;
+  --ring: rgba(255, 255, 255, 0.25);
 }
 .theme-light,
-.theme-minimal {
-  background: #f4f4ec;
-  color: #0a0a0a;
+.public-page.theme-light {
+  --page-bg: linear-gradient(160deg, #eef2f7, #dbe4f0);
+  --surface: #ffffff;
+  --surface-solid: #ffffff;
+  --border: rgba(15, 23, 42, 0.1);
+  --text: #0f172a;
+  --muted: #64748b;
+  --primary: #2563eb;
+  --on-primary: #ffffff;
+  --ring: rgba(37, 99, 235, 0.22);
 }
-.theme-blue {
-  background: linear-gradient(150deg, #041f3f, #19e3ff);
+.theme-minimal,
+.public-page.theme-minimal {
+  --page-bg: #f4f4ec;
+  --surface: #ffffff;
+  --surface-solid: #ffffff;
+  --border: rgba(0, 0, 0, 0.1);
+  --text: #18181b;
+  --muted: #71717a;
+  --primary: #18181b;
+  --on-primary: #ffffff;
+  --ring: rgba(0, 0, 0, 0.12);
 }
-.theme-purple {
-  background: linear-gradient(150deg, #1a0630, #ff1f9c);
+
+/* Token-aware button-style variants (live page + preview). */
+.public-page.button-glass .profile-link {
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+  color: var(--text);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: none;
 }
-.theme-minimal .profile-link,
-.theme-light .profile-link {
-  color: #0a0a0a;
-  background: rgba(10, 10, 10, 0.06);
-  border-color: rgba(10, 10, 10, 0.12);
+.public-page.button-outline .profile-link {
+  background: transparent;
+  border: 2px solid var(--primary);
+  color: var(--primary);
+  box-shadow: none;
+}
+.public-page.button-soft .profile-link {
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+  color: var(--text);
+  box-shadow: none;
 }
 
 /* ============================================================
@@ -1410,40 +2386,46 @@ a {
    the Acid Pop identity.
    ============================================================ */
 
+/* Design tokens. Default values = the "dark" deck-neon look. Theme classes
+   override these tokens; inline style can override --primary and --page-bg for
+   free styling. Every public element below is painted from these tokens, so a
+   theme change recolors the whole page (text, surfaces, borders, accents). */
 .public-page {
-  --deck-cyan: #00e5ff;
-  --deck-blue: #2563eb;
-  --deck-text: #f8fafc;
-  --deck-dim: #94a3b8;
-  font-family: var(--font-body);
-  color: var(--deck-text);
-  background:
+  --primary: #38bdf8;
+  --on-primary: #04222e;
+  --surface: rgba(8, 13, 30, 0.55);
+  --surface-solid: #0b1226;
+  --border: rgba(255, 255, 255, 0.14);
+  --text: #f8fafc;
+  --muted: #94a3b8;
+  --ring: rgba(56, 189, 248, 0.4);
+  --page-bg:
     radial-gradient(120% 60% at 50% -10%, rgba(0, 229, 255, 0.16), transparent 60%),
     radial-gradient(120% 60% at 50% 110%, rgba(37, 99, 235, 0.22), transparent 60%),
-    var(--page-bg, #020617);
+    #020617;
+  font-family: var(--font-body);
+  color: var(--text);
+  background: var(--page-bg);
 }
 
 .public-page .public-card {
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(0, 229, 255, 0.16);
+  border: 1px solid var(--border);
   border-radius: 28px;
-  background: rgba(8, 13, 30, 0.55);
+  background: var(--surface);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
   padding: 28px 22px 32px;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 30px 80px rgba(0, 0, 0, 0.55),
-    0 0 70px rgba(0, 229, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 30px 80px rgba(0, 0, 0, 0.4);
 }
 
 .public-page .profile-photo {
   width: 116px;
   height: 116px;
-  border: 3px solid var(--deck-cyan);
-  background: linear-gradient(135deg, var(--deck-blue), var(--deck-cyan));
-  box-shadow: 0 0 0 5px rgba(0, 229, 255, 0.12), 0 0 34px rgba(0, 229, 255, 0.4);
+  border: 3px solid var(--primary);
+  background: var(--surface-solid);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 14%, transparent), 0 0 34px var(--ring);
 }
 
 .public-page .profile-name {
@@ -1453,7 +2435,7 @@ a {
   font-size: 1.8rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--deck-text);
+  color: var(--text);
 }
 
 .public-page .profile-handle {
@@ -1462,7 +2444,15 @@ a {
   font-family: var(--font-mono);
   font-size: 0.85rem;
   font-weight: 700;
-  color: var(--deck-cyan);
+  color: var(--primary);
+}
+
+.public-page .profile-role {
+  margin: 8px 0 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--muted);
 }
 
 .public-page .profile-bio {
@@ -1470,47 +2460,87 @@ a {
   max-width: 30ch;
   text-align: center;
   line-height: 1.6;
-  color: var(--deck-dim);
+  color: var(--muted);
 }
 
-.public-page .contact-button {
-  min-height: 62px;
-  flex-direction: column;
-  gap: 4px;
-  border-radius: 16px;
-  border: 1px solid rgba(0, 229, 255, 0.18);
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--deck-text);
+.public-page .save-contact-btn {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  padding: 0.72rem 1.4rem;
+  border-radius: 14px;
+  border: 1px solid var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  color: var(--text);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  letter-spacing: 0.02em;
-  transition: transform 140ms ease, border-color 140ms ease, color 140ms ease;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease;
 }
-.public-page .contact-button svg {
-  color: var(--deck-cyan);
-}
-.public-page .contact-button:hover {
+.public-page .save-contact-btn:hover {
   transform: translateY(-2px);
-  border-color: var(--deck-cyan);
+  background: color-mix(in srgb, var(--primary) 24%, transparent);
+}
+.public-page .save-contact-btn svg {
+  color: var(--primary);
+}
+
+/* Compact social-icon row (links with display = 'icon'). */
+.public-page .social-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-self: center;
+  justify-content: center;
+  gap: 18px;
+  margin-top: 16px;
+}
+.public-page .social-icon {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: transform 140ms ease, color 140ms ease;
+}
+.public-page .social-icon:hover {
+  transform: translateY(-3px);
+  color: var(--primary);
+}
+.icon-glyph {
+  display: inline-grid;
+  place-items: center;
+}
+.icon-glyph svg {
+  width: 26px;
+  height: 26px;
+}
+/* Brand marks (simple-icons) are filled paths; lucide icons stay stroked. */
+.icon-glyph .brand-svg {
+  fill: currentColor;
 }
 
 .public-page .profile-link {
   min-height: 60px;
   gap: 0.85rem;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: var(--button-bg, var(--deck-blue));
-  color: #fff;
+  border: 1px solid transparent;
+  background: var(--primary);
+  color: var(--on-primary);
   font-family: var(--font-body);
   font-size: 1rem;
   font-weight: 700;
-  box-shadow: 0 10px 26px rgba(37, 99, 235, 0.28);
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--primary) 30%, transparent);
   transition: transform 140ms ease, box-shadow 140ms ease, filter 140ms ease;
 }
 .public-page .profile-link:hover {
   transform: translateY(-2px);
-  filter: brightness(1.08);
-  box-shadow: 0 14px 32px rgba(0, 229, 255, 0.32);
+  filter: brightness(1.06);
 }
 .public-page .profile-link:active {
   transform: translateY(0);
@@ -1520,29 +2550,8 @@ a {
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: rgba(0, 0, 0, 0.28);
-  color: #fff;
-}
-
-.public-page .qr-box {
-  margin-top: 28px;
-}
-.public-page .qr-box img {
-  width: 172px;
-  padding: 12px;
-  border-radius: 18px;
-  background: #fff;
-  box-shadow: 0 0 34px rgba(0, 229, 255, 0.22);
-}
-.public-page .qr-box .btn-ghost {
-  border-radius: 12px;
-  border-color: rgba(0, 229, 255, 0.32);
-  color: var(--deck-cyan);
-  font-family: var(--font-mono);
-}
-.public-page .qr-box .btn-ghost:hover {
-  border-color: var(--deck-cyan);
-  color: var(--deck-cyan);
+  background: rgba(0, 0, 0, 0.2);
+  color: inherit;
 }
 
 .public-page .profile-url {
@@ -1551,7 +2560,7 @@ a {
   justify-content: center;
   gap: 6px;
   margin-top: 22px;
-  color: var(--deck-dim);
+  color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.74rem;
 }
@@ -1559,10 +2568,225 @@ a {
 .public-page .profile-foot {
   margin: 22px 0 0;
   text-align: center;
-  color: var(--deck-dim);
+  color: var(--muted);
   font-family: var(--font-mono);
   font-size: 0.72rem;
 }
 .public-page .profile-foot strong {
-  color: var(--deck-cyan);
+  color: var(--primary);
+}
+
+/* Loading skeleton — mirrors the public-card layout so the page doesn't jump
+   when real content arrives. Shimmer in deck-neon cyan. */
+.public-page .skeleton {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--text) 12%, transparent);
+  border-radius: 12px;
+}
+.public-page .skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--primary) 24%, transparent), transparent);
+  animation: skeleton-shimmer 1.3s infinite;
+}
+@keyframes skeleton-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.public-page .skeleton-avatar {
+  width: 116px;
+  height: 116px;
+  border-radius: 50%;
+  margin: 0 auto;
+}
+.public-page .skeleton-name {
+  width: 60%;
+  height: 26px;
+  margin: 20px auto 0;
+}
+.public-page .skeleton-handle {
+  width: 34%;
+  height: 13px;
+  margin: 12px auto 0;
+}
+.public-page .skeleton-bio {
+  width: 78%;
+  height: 11px;
+  margin: 16px auto 0;
+}
+.public-page .skeleton-bio.short {
+  width: 52%;
+  margin-top: 9px;
+}
+.public-page .skeleton-contact {
+  width: 100%;
+  height: 62px;
+  border-radius: 16px;
+}
+.public-page .skeleton-link {
+  width: 100%;
+  height: 60px;
+  border-radius: 16px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-page .skeleton::after {
+    animation: none;
+  }
+}
+
+/* Small fixed bottom-right button that opens the QR / share popup. */
+.public-page .qr-fab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45), 0 0 24px var(--ring);
+  transition: transform 140ms ease, filter 140ms ease;
+}
+.public-page .qr-fab:hover {
+  transform: translateY(-2px) scale(1.04);
+  filter: brightness(1.08);
+}
+.public-page .qr-fab:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* QR / share popup — opened from the fixed QR button. */
+.public-page .qr-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(2, 6, 23, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: qr-fade 160ms ease;
+}
+.public-page .qr-modal-card {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 24px 24px;
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  background: var(--surface-solid);
+  color: var(--text);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6), 0 0 70px var(--ring);
+  animation: qr-pop 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.public-page .qr-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+  color: var(--muted);
+  transition: color 140ms ease, border-color 140ms ease;
+}
+.public-page .qr-modal-close:hover {
+  color: var(--text);
+  border-color: var(--primary);
+}
+.public-page .qr-modal-handle {
+  margin: 0 0 16px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+.public-page .qr-modal-img {
+  width: 220px;
+  height: 220px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: 0 0 34px var(--ring);
+}
+.public-page .qr-modal-url {
+  margin: 16px 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--muted);
+  word-break: break-all;
+  text-align: center;
+}
+.public-page .qr-modal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 18px;
+  width: 100%;
+}
+.public-page .qr-modal-actions .btn-ghost {
+  flex: 1;
+  min-width: 92px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.public-page .qr-modal-actions .btn-ghost:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+@keyframes qr-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes qr-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-page .qr-modal,
+  .public-page .qr-modal-card {
+    animation: none;
+  }
+}
+
+/* Default avatar: a neutral grey circle with a person glyph, shown when the
+   user hasn't uploaded a profile picture. */
+.profile-photo.is-empty {
+  display: grid;
+  place-items: center;
+  background: #475569;
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: none;
+  color: #cbd5e1;
+}
+.profile-photo.is-empty svg {
+  width: 52%;
+  height: 52%;
+}
+.public-page .profile-photo.is-empty {
+  background: color-mix(in srgb, var(--text) 16%, var(--surface-solid));
+  border-color: var(--border);
+  color: var(--muted);
 }
