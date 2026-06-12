@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Package } from 'lucide-react';
+import { Download, Package } from 'lucide-react';
 import { api } from '../../lib/api';
 import type { Order } from '../../lib/types';
 
@@ -11,13 +11,18 @@ export function AdminOrders() {
   const [status, setStatus] = useState<StatusFilter>('all');
   const [unshippedOnly, setUnshippedOnly] = useState(false);
   const [error, setError] = useState('');
+  const [exporting, setExporting] = useState(false);
+
+  function filterQuery(currentStatus: StatusFilter, currentUnshipped: boolean) {
+    const params = new URLSearchParams();
+    if (currentStatus !== 'all') params.set('status', currentStatus);
+    if (currentUnshipped) params.set('fulfilled', 'false');
+    return params.toString();
+  }
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (status !== 'all') params.set('status', status);
-    if (unshippedOnly) params.set('fulfilled', 'false');
     api
-      .get(`/admin/orders?${params}`)
+      .get(`/admin/orders?${filterQuery(status, unshippedOnly)}`)
       .then(({ data }) => {
         setOrders(data.orders ?? []);
         setError('');
@@ -28,6 +33,25 @@ export function AdminOrders() {
   async function toggleFulfilled(order: Order) {
     const { data } = await api.put(`/admin/orders/${order._id}/fulfill`, { fulfilled: !order.fulfilled });
     setOrders((prev) => prev.map((item) => (item._id === order._id ? data.order : item)));
+  }
+
+  async function exportCsv() {
+    setExporting(true);
+    try {
+      // Auth-gated endpoint: fetch as a blob through `api` (carries the bearer
+      // token) rather than a plain link, then trigger a client-side download.
+      const { data } = await api.get(`/admin/orders.csv?${filterQuery(status, unshippedOnly)}`, {
+        responseType: 'blob',
+      });
+      const url = URL.createObjectURL(data);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `onetapz-orders-${Date.now()}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
   }
 
   return (
@@ -55,6 +79,9 @@ export function AdminOrders() {
           <input type="checkbox" checked={unshippedOnly} onChange={(e) => setUnshippedOnly(e.target.checked)} />
           Unshipped only
         </label>
+        <button className="btn-icon" type="button" disabled={exporting} onClick={exportCsv}>
+          <Download size={15} /> {exporting ? 'Exporting…' : 'Export CSV'}
+        </button>
       </div>
 
       {error && <p className="text-sm text-slate-400">{error}</p>}

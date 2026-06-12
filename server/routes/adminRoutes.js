@@ -204,6 +204,62 @@ router.get(
   }),
 );
 
+// CSV escape: wrap in quotes and double any inner quotes. Prefix a leading
+// =/+/-/@ with an apostrophe so spreadsheet apps don't execute it as a formula
+// (CSV injection) — buyer name/phone are user-controlled.
+const csvCell = (value) => {
+  let s = String(value ?? '');
+  if (/^[=+\-@]/.test(s)) s = `'${s}`;
+  return `"${s.replace(/"/g, '""')}"`;
+};
+
+router.get(
+  '/orders.csv',
+  asyncHandler(async (req, res) => {
+    const filter = {};
+    if (['pending', 'paid', 'expired'].includes(req.query.status)) filter.status = req.query.status;
+    if (req.query.fulfilled === 'true') filter.fulfilled = true;
+    if (req.query.fulfilled === 'false') filter.fulfilled = false;
+
+    const orders = await Order.find(filter).sort('-createdAt').limit(5000).lean();
+    const header = [
+      'reference',
+      'status',
+      'fulfilled',
+      'amount',
+      'currency',
+      'items',
+      'customerName',
+      'phone',
+      'telegramUsername',
+      'createdAt',
+      'paidAt',
+    ];
+    const rows = orders.map((o) =>
+      [
+        o.reference,
+        o.status,
+        o.fulfilled ? 'yes' : 'no',
+        (o.amount ?? 0).toFixed(2),
+        o.currency || 'USD',
+        (o.items || []).map((i) => `${i.name} x${i.qty}`).join('; '),
+        o.customer?.name || '',
+        o.customer?.phone || '',
+        o.telegramUsername || '',
+        o.createdAt ? new Date(o.createdAt).toISOString() : '',
+        o.paidAt ? new Date(o.paidAt).toISOString() : '',
+      ]
+        .map(csvCell)
+        .join(','),
+    );
+
+    const csv = [header.join(','), ...rows].join('\r\n');
+    res.set('Content-Type', 'text/csv; charset=utf-8');
+    res.set('Content-Disposition', `attachment; filename="onetapz-orders-${Date.now()}.csv"`);
+    res.send(csv);
+  }),
+);
+
 router.put(
   '/orders/:id/fulfill',
   asyncHandler(async (req, res) => {
