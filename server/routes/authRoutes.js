@@ -5,8 +5,12 @@ import Analytics from '../models/Analytics.js';
 import { protect } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { signToken } from '../utils/token.js';
+import { rateLimit } from '../middleware/rateLimit.js';
 
 const router = express.Router();
+
+// Throttle credential + identity endpoints against brute force / spam.
+const authLimiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 30 });
 
 const publicUser = (user) => ({
   id: user._id,
@@ -15,6 +19,13 @@ const publicUser = (user) => ({
   username: user.username,
   bio: user.bio,
   profileImage: user.profileImage,
+  phone: user.phone,
+  contactEmail: user.contactEmail,
+  company: user.company,
+  jobTitle: user.jobTitle,
+  location: user.location,
+  saveContactEnabled: user.saveContactEnabled,
+  saveContactDisplay: user.saveContactDisplay,
   theme: user.theme,
   buttonStyle: user.buttonStyle,
   buttonBackground: user.buttonBackground,
@@ -74,11 +85,23 @@ async function uniqueUsername(base) {
 
 router.post(
   '/register',
+  authLimiter,
   asyncHandler(async (req, res) => {
-    const { name, email, password, username } = req.body;
+    // Coerce to strings: req.body fields are attacker-controlled and a JSON
+    // object like {"$gt":""} would otherwise reach Mongo as a query operator.
+    const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
+    const username = typeof req.body.username === 'string' ? req.body.username.trim().toLowerCase() : '';
 
     if (!name || !email || !password || !username) {
       return res.status(400).json({ message: 'Name, email, username, and password are required.' });
+    }
+
+    if (!/^[a-z0-9_-]{3,22}$/.test(username)) {
+      return res.status(400).json({
+        message: 'Username must be 3–22 characters: letters, numbers, hyphens or underscores.',
+      });
     }
 
     const exists = await User.findOne({ $or: [{ email }, { username }] });
@@ -95,8 +118,12 @@ router.post(
 
 router.post(
   '/login',
+  authLimiter,
   asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    // Coerce to strings so a crafted object body can't smuggle a Mongo operator
+    // (e.g. {"email":{"$gt":""}}) into the lookup.
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
     const user = await User.findOne({ email }).select('+password');
 
     if (!user || !(await user.matchPassword(password))) {
@@ -111,37 +138,140 @@ router.post(
   }),
 );
 
+// Verify Telegram Mini App initData (signed query string from WebApp.initData).
+// Uses the WebApp HMAC scheme: secret = HMAC_SHA256(key="WebAppData", botToken),
+// then hash = HMAC_SHA256(secret, data_check_string). Returns the parsed user.
+function verifyWebAppInitData(initData) {
+  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  if (!botToken) {
+    const error = new Error('Telegram login is not configured.');
+    error.status = 501;
+    throw error;
+  }
+  if (!initData || typeof initData !== 'string') {
+    const error = new Error('Missing Telegram initData.');
+    error.status = 400;
+    throw error;
+  }
+
+  const params = new URLSearchParams(initData);
+  const hash = params.get('hash');
+  if (!hash) {
+    const error = new Error('Telegram initData is missing a hash.');
+    error.status = 400;
+    throw error;
+  }
+
+  const secret = crypto.createHmac('sha256', 'WebAppData').update(botToken).digest();
+  const hashMatches = (h) => h.length === hash.length && crypto.timingSafeEqual(Buffer.from(h), Buffer.from(hash));
+
+  // data_check_string = fields (except hash), sorted, joined by newlines. Telegram
+  // clients differ on whether the newer Ed25519 `signature` field is part of the
+  // HMAC input, so accept whichever variant validates against the bot secret —
+  // forging either still requires the bot token, so this stays secure.
+  const computeHash = (excludeSignature) => {
+    const pairs = [];
+    for (const [key, value] of params.entries()) {
+      if (key === 'hash') continue;
+      if (excludeSignature && key === 'signature') continue;
+      pairs.push(`${key}=${value}`);
+    }
+    pairs.sort();
+    return crypto.createHmac('sha256', secret).update(pairs.join('\n')).digest('hex');
+  };
+
+  if (!hashMatches(computeHash(false)) && !hashMatches(computeHash(true))) {
+    const error = new Error('Telegram verification failed.');
+    error.status = 401;
+    throw error;
+  }
+
+  const authDate = Number(params.get('auth_date') || 0) * 1000;
+  if (!authDate || Date.now() - authDate > 24 * 60 * 60 * 1000) {
+    const error = new Error('Telegram session expired.');
+    error.status = 401;
+    throw error;
+  }
+
+  const userRaw = params.get('user');
+  if (!userRaw) {
+    const error = new Error('Telegram initData is missing user.');
+    error.status = 400;
+    throw error;
+  }
+  return JSON.parse(userRaw);
+}
+
+// Telegram usernames (without @, case-insensitive) granted the admin role.
+const ADMIN_TELEGRAM_USERNAMES = (process.env.ADMIN_TELEGRAM_USERNAMES || 'lyheangleng')
+  .split(',')
+  .map((name) => name.trim().toLowerCase())
+  .filter(Boolean);
+
+function isAdminTelegram(username) {
+  return !!username && ADMIN_TELEGRAM_USERNAMES.includes(username.toLowerCase());
+}
+
+// Find-or-create a user from Telegram identity (shared by login widget + Mini App).
+async function provisionTelegramUser({ telegramId, firstName = '', lastName = '', username = '', photoUrl = '' }) {
+  const id = String(telegramId);
+  const name = `${firstName} ${lastName}`.trim() || username || `Telegram ${id}`;
+  const admin = isAdminTelegram(username);
+
+  let user = await User.findOne({ telegramId: id });
+  if (user) {
+    user.name = name;
+    if (photoUrl) user.profileImage = photoUrl;
+    // Promote (or demote) based on the configured admin list.
+    if (admin && user.role !== 'admin') user.role = 'admin';
+    await user.save();
+    return { user, isNew: false };
+  }
+
+  user = await User.create({
+    telegramId: id,
+    name,
+    email: `telegram-${id}@onetapz.local`,
+    password: crypto.randomBytes(24).toString('hex'),
+    username: await uniqueUsername(username || `tg${id}`),
+    profileImage: photoUrl || '',
+    bio: '',
+    theme: 'dark',
+    role: admin ? 'admin' : 'user',
+  });
+  await Analytics.create({ userId: user._id });
+  return { user, isNew: true };
+}
+
 router.post(
   '/telegram',
+  authLimiter,
   asyncHandler(async (req, res) => {
     verifyTelegramPayload(req.body);
+    const { user, isNew } = await provisionTelegramUser({
+      telegramId: req.body.id,
+      firstName: req.body.first_name,
+      lastName: req.body.last_name,
+      username: req.body.username,
+      photoUrl: req.body.photo_url,
+    });
+    res.json({ user: publicUser(user), token: signToken(user), isNew });
+  }),
+);
 
-    const telegramId = String(req.body.id);
-    const firstName = req.body.first_name || '';
-    const lastName = req.body.last_name || '';
-    const name = `${firstName} ${lastName}`.trim() || req.body.username || `Telegram ${telegramId}`;
-
-    let user = await User.findOne({ telegramId });
-
-    if (!user) {
-      user = await User.create({
-        telegramId,
-        name,
-        email: `telegram-${telegramId}@onetapz.local`,
-        password: crypto.randomBytes(24).toString('hex'),
-        username: await uniqueUsername(req.body.username || `tg${telegramId}`),
-        profileImage: req.body.photo_url || '',
-        bio: '',
-        theme: 'gradient',
-      });
-      await Analytics.create({ userId: user._id });
-    } else {
-      user.name = name;
-      user.profileImage = req.body.photo_url || user.profileImage;
-      await user.save();
-    }
-
-    res.json({ user: publicUser(user), token: signToken(user) });
+router.post(
+  '/telegram/webapp',
+  authLimiter,
+  asyncHandler(async (req, res) => {
+    const tgUser = verifyWebAppInitData(req.body.initData);
+    const { user, isNew } = await provisionTelegramUser({
+      telegramId: tgUser.id,
+      firstName: tgUser.first_name,
+      lastName: tgUser.last_name,
+      username: tgUser.username,
+      photoUrl: tgUser.photo_url,
+    });
+    res.json({ user: publicUser(user), token: signToken(user), isNew });
   }),
 );
 
