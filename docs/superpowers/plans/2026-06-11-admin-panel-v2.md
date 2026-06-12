@@ -19,7 +19,7 @@
 **Files:**
 - Modify: `server/routes/adminRoutes.js` (full rewrite, currently 73 lines)
 
-- [ ] **Step 1: Rewrite `server/routes/adminRoutes.js`**
+- [x] **Step 1: Rewrite `server/routes/adminRoutes.js`**
 
 Replace the entire file with:
 
@@ -259,12 +259,12 @@ Notes for the implementer:
 - `req.user.id` is the Mongoose virtual string id (set by `protect` in `server/middleware/auth.js`); comparing against `req.params.id` (string) is correct.
 - Mongoose async hooks/gotcha does not apply here (no hooks added).
 
-- [ ] **Step 2: Syntax-check the server file**
+- [x] **Step 2: Syntax-check the server file**
 
 Run: `node --check server/routes/adminRoutes.js`
 Expected: no output (exit 0).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add server/routes/adminRoutes.js
@@ -278,7 +278,7 @@ git commit -m "feat(admin): stats, user search/edit/cascade-delete, link moderat
 **Files:**
 - Modify: `src/lib/types.ts`
 
-- [ ] **Step 1: Add `AdminStats`, extend `User` and `Order`**
+- [x] **Step 1: Add `AdminStats`, extend `User` and `Order`**
 
 In `src/lib/types.ts`:
 
@@ -304,12 +304,12 @@ export type AdminStats = {
 };
 ```
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 Run: `npx tsc -b`
 Expected: exit 0, no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/lib/types.ts
@@ -324,7 +324,7 @@ git commit -m "feat(admin): AdminStats type, User.createdAt, Order.telegramUsern
 - Create: `src/components/admin/AdminStats.tsx`
 - Modify: `src/index.css` (append metric-card styles near the admin section, after the `.status-off` block ~line 1896)
 
-- [ ] **Step 1: Create `src/components/admin/AdminStats.tsx`**
+- [x] **Step 1: Create `src/components/admin/AdminStats.tsx`**
 
 ```tsx
 import { useEffect, useState } from 'react';
@@ -371,7 +371,7 @@ export function AdminStats() {
 }
 ```
 
-- [ ] **Step 2: Append metric-card styles to `src/index.css`**
+- [x] **Step 2: Append metric-card styles to `src/index.css`**
 
 Insert after the `.status-off { … }` rule (before the `/* PUBLIC PROFILE / PHONE PREVIEW */` banner):
 
@@ -407,12 +407,12 @@ Insert after the `.status-off { … }` rule (before the `/* PUBLIC PROFILE / PHO
 }
 ```
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 Run: `npx tsc -b`
 Expected: exit 0. (The component isn't wired into a page yet; that happens in Task 6.)
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/admin/AdminStats.tsx src/index.css
@@ -426,7 +426,7 @@ git commit -m "feat(admin): overview stats tab with metric cards"
 **Files:**
 - Create: `src/components/admin/AdminUsers.tsx`
 
-- [ ] **Step 1: Create `src/components/admin/AdminUsers.tsx`**
+- [x] **Step 1: Create `src/components/admin/AdminUsers.tsx`**
 
 ```tsx
 import { useEffect, useState } from 'react';
@@ -755,12 +755,12 @@ Implementation notes:
 - `input` is the repo's form-control class (verified: `EditProfile.tsx` uses `className="input"` on inputs, selects, and textareas).
 - `useAuth()` returns `{ user, … }` from `src/context/AuthContext.tsx`; `me` can be `null`.
 
-- [ ] **Step 2: Type-check + lint**
+- [x] **Step 2: Type-check + lint**
 
 Run: `npx tsc -b && npx eslint src/components/admin`
 Expected: exit 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/admin/AdminUsers.tsx
@@ -774,7 +774,7 @@ git commit -m "feat(admin): users tab with search, pagination, editing, link mod
 **Files:**
 - Create: `src/components/admin/AdminOrders.tsx`
 
-- [ ] **Step 1: Create `src/components/admin/AdminOrders.tsx`**
+- [x] **Step 1: Create `src/components/admin/AdminOrders.tsx`**
 
 ```tsx
 import { useEffect, useState } from 'react';
@@ -883,12 +883,12 @@ export function AdminOrders() {
 }
 ```
 
-- [ ] **Step 2: Type-check + lint**
+- [x] **Step 2: Type-check + lint**
 
 Run: `npx tsc -b && npx eslint src/components/admin`
 Expected: exit 0.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/admin/AdminOrders.tsx
@@ -903,7 +903,7 @@ git commit -m "feat(admin): orders tab with status/fulfilled filters and Telegra
 - Create: `src/components/admin/AdminCards.tsx`
 - Modify: `src/pages/AdminDashboard.tsx` (full rewrite, currently 117 lines)
 
-- [ ] **Step 1: Create `src/components/admin/AdminCards.tsx`** (extraction of the existing section, now self-fetching)
+- [x] **Step 1: Create `src/components/admin/AdminCards.tsx`** (extraction of the existing section, now self-fetching)
 
 ```tsx
 import { useEffect, useState } from 'react';
@@ -942,7 +942,7 @@ export function AdminCards() {
 }
 ```
 
-- [ ] **Step 2: Rewrite `src/pages/AdminDashboard.tsx` as the tab shell**
+- [x] **Step 2: Rewrite `src/pages/AdminDashboard.tsx` as the tab shell**
 
 Replace the entire file with:
 
@@ -995,12 +995,12 @@ Notes:
 - Keep the named `AdminDashboard` export — `App.tsx` lazy-imports it by name (`m.AdminDashboard`); no `App.tsx` change is needed.
 - Tabs mount on activation, so each tab fetches lazily. Switching away unmounts (state resets) — accepted in the spec.
 
-- [ ] **Step 3: Type-check + lint**
+- [x] **Step 3: Type-check + lint**
 
 Run: `npx tsc -b && npx eslint src`
 Expected: exit 0.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/components/admin/AdminCards.tsx src/pages/AdminDashboard.tsx
@@ -1011,17 +1011,17 @@ git commit -m "feat(admin): tabbed admin dashboard shell (overview/users/orders/
 
 ### Task 7: Full verification
 
-- [ ] **Step 1: Frontend verify loop**
+- [x] **Step 1: Frontend verify loop**
 
 Run: `npx tsc -b && npx eslint src && npm run build`
 Expected: all exit 0; Vite build completes.
 
-- [ ] **Step 2: Server syntax check**
+- [x] **Step 2: Server syntax check**
 
 Run: `node --check server/routes/adminRoutes.js`
 Expected: exit 0.
 
-- [ ] **Step 3: Manual smoke test (requires `.env` with `MONGO_URI`, `JWT_SECRET`)**
+- [x] **Step 3: Manual smoke test (requires `.env` with `MONGO_URI`, `JWT_SECRET`)**
 
 Run: `npm run dev`, log in as an admin user, open `/admin`, and verify:
 1. Overview shows metric cards with non-NaN values.
@@ -1030,7 +1030,7 @@ Run: `npm run dev`, log in as an admin user, open `/admin`, and verify:
 4. Orders tab: filter chips change the list; "Unshipped only" works.
 5. NFC Cards tab renders.
 
-- [ ] **Step 4: Commit any fixes, then update plan checkboxes**
+- [x] **Step 4: Commit any fixes, then update plan checkboxes**
 
 ```bash
 git add -A docs/superpowers/plans/2026-06-11-admin-panel-v2.md
