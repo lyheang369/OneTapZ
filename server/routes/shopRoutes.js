@@ -77,7 +77,10 @@ router.post(
     }
 
     const amount = Math.round(lineItems.reduce((sum, i) => sum + i.price * i.qty, 0) * 100) / 100;
-    const reference = `SHOP-${Date.now()}-${crypto.randomBytes(3).toString('hex')}`;
+    // The reference is an unauthenticated bearer capability for the public
+    // invoice (GET /order/:reference), so the random part must be unguessable —
+    // 16 bytes (128 bits) of CSPRNG output, not a brute-forceable 3.
+    const reference = `SHOP-${Date.now()}-${crypto.randomBytes(16).toString('hex')}`;
 
     await Order.create({
       reference,
