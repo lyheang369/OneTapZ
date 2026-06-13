@@ -23,7 +23,7 @@
 - Modify: `src/components/DashboardLayout.tsx` (whole file, currently 37 lines)
 - Modify: `src/index.css` (append base `.dash-tabs` rules in Task 4's new section — but the class is introduced here)
 
-- [ ] **Step 1: Rewrite `src/components/DashboardLayout.tsx`**
+- [x] **Step 1: Rewrite `src/components/DashboardLayout.tsx`**
 
 Replace the entire file with:
 
@@ -79,12 +79,12 @@ export function DashboardLayout({ title, children }: { title: string; children: 
 
 What changed: `<aside>` is now `hidden … lg:block` (takes no space below 1024px); a new `.dash-tabs` `<nav>` (shown only below `lg`) renders the same items as a horizontal strip above the title. `.dash-tabs` CSS is added in Task 4.
 
-- [ ] **Step 2: Type-check**
+- [x] **Step 2: Type-check**
 
 Run: `npx tsc -b`
 Expected: exit 0. (The strip is unstyled until Task 4 but valid.)
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/components/DashboardLayout.tsx
@@ -102,7 +102,7 @@ git commit -m "feat(ui): mobile horizontal nav strip for dashboard, hide sidebar
 
 Context: `.btn-icon` is a fixed `48px` square with `padding: 0` (`src/index.css:235`). The admin Prev/Next/Remove-photo/Delete-user/Cancel/Export-CSV buttons put **text** inside it, so the text overflows the 48px box. Switch those to `.btn-text` (auto width, real padding). Keep true icon-only buttons (chevron, link toggle/delete) on `.btn-icon`.
 
-- [ ] **Step 1: In `src/components/admin/AdminUsers.tsx`, convert the Prev button**
+- [x] **Step 1: In `src/components/admin/AdminUsers.tsx`, convert the Prev button**
 
 Replace:
 
@@ -120,7 +120,7 @@ with:
           </button>
 ```
 
-- [ ] **Step 2: Convert the Next button**
+- [x] **Step 2: Convert the Next button**
 
 Replace:
 
@@ -138,7 +138,7 @@ with:
           </button>
 ```
 
-- [ ] **Step 3: Convert the "Remove photo" button**
+- [x] **Step 3: Convert the "Remove photo" button**
 
 Replace:
 
@@ -156,7 +156,7 @@ with:
           </button>
 ```
 
-- [ ] **Step 4: Convert the "Delete user" button**
+- [x] **Step 4: Convert the "Delete user" button**
 
 Replace:
 
@@ -174,7 +174,7 @@ with:
           </button>
 ```
 
-- [ ] **Step 5: Convert the "Cancel" button**
+- [x] **Step 5: Convert the "Cancel" button**
 
 Replace:
 
@@ -192,7 +192,7 @@ with:
             </button>
 ```
 
-- [ ] **Step 6: In `src/components/admin/AdminOrders.tsx`, convert the Export CSV button**
+- [x] **Step 6: In `src/components/admin/AdminOrders.tsx`, convert the Export CSV button**
 
 Replace:
 
@@ -210,12 +210,12 @@ with:
         </button>
 ```
 
-- [ ] **Step 7: Type-check + lint**
+- [x] **Step 7: Type-check + lint**
 
 Run: `npx tsc -b && npx eslint src/components/admin`
 Expected: exit 0. (Buttons are unstyled-as-`.btn-text` until Task 4, but valid.)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add src/components/admin/AdminUsers.tsx src/components/admin/AdminOrders.tsx
@@ -231,23 +231,23 @@ git commit -m "feat(ui): use .btn-text for admin text actions instead of fixed-w
 
 Context: the spec wants the live phone preview to sit **below** the form on mobile. The `editor-grid` collapses to one column at the breakpoint; whichever child is **first in source order** ends up on top. We want the form first, preview second.
 
-- [ ] **Step 1: Inspect the editor grid order**
+- [x] **Step 1: Inspect the editor grid order**
 
 Run: `grep -n "editor-grid" src/pages/EditProfile.tsx`
 Then read ~10 lines after that match to see whether the form or the `PhonePreview` is the first child.
 
-- [ ] **Step 2: If the preview is the first child, move it after the form**
+- [x] **Step 2: If the preview is the first child, move it after the form**
 
 If (and only if) `PhonePreview`/the preview column appears **before** the form column inside `editor-grid`, reorder so the form column is first and the preview column is second. If the form is already first, make **no change** and note "already form-first" — skip to Step 3.
 
 (No code block here because the exact JSX depends on what Step 1 reveals; the change is purely reordering the two existing children of `editor-grid`, not rewriting them.)
 
-- [ ] **Step 3: Type-check**
+- [x] **Step 3: Type-check**
 
 Run: `npx tsc -b`
 Expected: exit 0.
 
-- [ ] **Step 4: Commit (only if a change was made)**
+- [x] **Step 4: Commit (only if a change was made)**
 
 ```bash
 git add src/pages/EditProfile.tsx
@@ -263,7 +263,7 @@ If no change was needed, skip this commit.
 **Files:**
 - Modify: `src/index.css` (append a new section at the very end of the file)
 
-- [ ] **Step 1: Append the responsive-polish section to `src/index.css`**
+- [x] **Step 1: Append the responsive-polish section to `src/index.css`**
 
 Add this block at the **end** of the file (after the last existing rule):
 
@@ -361,12 +361,12 @@ Add this block at the **end** of the file (after the last existing rule):
 }
 ```
 
-- [ ] **Step 2: Build to confirm the CSS compiles and is bundled**
+- [x] **Step 2: Build to confirm the CSS compiles and is bundled**
 
 Run: `npm run build`
 Expected: exit 0, Vite build completes (CSS is processed during build).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/index.css
@@ -379,17 +379,17 @@ git commit -m "feat(ui): responsive CSS — dash strip, btn-text, mobile row-wra
 
 **Files:** none up front — this task **observes** each surface at multiple widths and only edits if a concrete break is found.
 
-- [ ] **Step 1: Frontend verify loop**
+- [x] **Step 1: Frontend verify loop**
 
 Run: `npx tsc -b && npx eslint src && npm run build`
 Expected: all exit 0.
 
-- [ ] **Step 2: Start the app**
+- [x] **Step 2: Start the app**
 
 Run: `npm run dev`
 Expected: Vite on `:5173`, Express on `:5001`.
 
-- [ ] **Step 3: Responsive walkthrough with Chrome DevTools MCP**
+- [x] **Step 3: Responsive walkthrough with Chrome DevTools MCP**
 
 For each width **375, 768, 1024, 1440** visit and visually check (use the chrome-devtools MCP `new_page`/`navigate_page`/`resize_page`/`take_screenshot`):
 - `/` (Home), `/login`, `/register`
@@ -399,11 +399,11 @@ For each width **375, 768, 1024, 1440** visit and visually check (use the chrome
 
 For each, confirm: **no horizontal page scroll**, no clipped text, no crushed rows, the dashboard strip appears < 1024px and the sidebar appears ≥ 1024px, primary actions are tappable (≥44px). Capture a screenshot at 375px for the dashboard and admin Users tab as evidence.
 
-- [ ] **Step 4: Fix only concrete breaks found**
+- [x] **Step 4: Fix only concrete breaks found**
 
 If a specific element overflows or crushes, add a **targeted** rule to the RESPONSIVE POLISH section in `src/index.css` (same append-at-end pattern). Do not refactor unrelated styles. Re-run `npm run build` after any edit.
 
-- [ ] **Step 5: Final verify + commit any fixes**
+- [x] **Step 5: Final verify + commit any fixes**
 
 Run: `npx tsc -b && npx eslint src && npm run build`
 Expected: exit 0.
@@ -415,7 +415,7 @@ git commit -m "fix(ui): targeted responsive fixes from cross-surface walkthrough
 
 (If Step 4 found nothing, skip this commit.)
 
-- [ ] **Step 6: Check off this plan**
+- [x] **Step 6: Check off this plan**
 
 ```bash
 git add docs/superpowers/plans/2026-06-13-responsive-ui-polish.md
