@@ -2790,3 +2790,95 @@ a {
   border-color: var(--border);
   color: var(--muted);
 }
+
+/* ============================================================
+   RESPONSIVE POLISH
+   Appended last so these overrides win on equal specificity.
+   Keeps the Acid Pop look; fixes layout/touch ergonomics only.
+   ============================================================ */
+
+/* Dashboard mobile nav: horizontal, scrollable strip reusing .side-link.
+   Shown only below lg (lg:hidden on the element). */
+.dash-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding-bottom: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.dash-tabs::-webkit-scrollbar {
+  display: none;
+}
+.dash-tabs .side-link {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.75rem;
+}
+
+/* Text action button: like .btn-icon's surface, but sized to its content.
+   Used for admin Prev/Next/Export/Delete/Cancel/Remove-photo. */
+.btn-text {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius);
+  background: var(--bg-3);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: border-color 120ms ease, color 120ms ease;
+}
+.btn-text:hover:not(:disabled) {
+  border-color: var(--acid);
+  color: var(--acid);
+}
+.btn-text:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Tab/filter chip rows scroll horizontally instead of wrapping raggedly. */
+.profile-tab {
+  white-space: nowrap;
+}
+
+/* Inputs: ensure a comfortable tap height everywhere. */
+.input {
+  min-height: 44px;
+}
+
+@media (max-width: 640px) {
+  /* Stop iOS Safari from zooming when focusing a sub-16px input. */
+  .input {
+    font-size: 16px;
+  }
+
+  /* Admin/list rows: let the action cluster wrap below the label instead of
+     crushing long names/URLs. */
+  .admin-row {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  /* The 4-tab admin bar and edit-profile tabs can exceed the viewport; scroll
+     them instead of letting flex:1 squash labels. */
+  .profile-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .profile-tabs::-webkit-scrollbar {
+    display: none;
+  }
+  .profile-tab {
+    flex: 0 0 auto;
+  }
+}
