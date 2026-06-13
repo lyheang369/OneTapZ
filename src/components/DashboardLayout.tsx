@@ -24,7 +24,7 @@ export function DashboardLayout({ title, children }: { title: string; children: 
           );
         })}
       </aside>
-      <section>
+      <section className="min-w-0">
         <nav className="dash-tabs lg:hidden" aria-label="Dashboard sections">
           {items.map((item) => {
             const Icon = item.icon;

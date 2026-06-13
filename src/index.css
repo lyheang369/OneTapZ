@@ -2798,15 +2798,21 @@ a {
    ============================================================ */
 
 /* Dashboard mobile nav: horizontal, scrollable strip reusing .side-link.
-   Shown only below lg (lg:hidden on the element). */
+   Shown only below lg. `display` is scoped under the lg breakpoint so it does
+   NOT override the element's Tailwind `lg:hidden` at >=1024px (equal specificity
+   + later source order would otherwise leak the strip onto desktop). */
 .dash-tabs {
-  display: flex;
   gap: 8px;
   margin-bottom: 20px;
   padding-bottom: 4px;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+}
+@media (max-width: 1023px) {
+  .dash-tabs {
+    display: flex;
+  }
 }
 .dash-tabs::-webkit-scrollbar {
   display: none;
