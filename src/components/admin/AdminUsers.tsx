@@ -136,10 +136,10 @@ export function AdminUsers() {
           Page {page} of {pages} · {total} users
         </span>
         <div className="flex gap-2">
-          <button className="btn-icon" type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>
+          <button className="btn-text" type="button" disabled={page <= 1} onClick={() => setPage(page - 1)}>
             Prev
           </button>
-          <button className="btn-icon" type="button" disabled={page >= pages} onClick={() => setPage(page + 1)}>
+          <button className="btn-text" type="button" disabled={page >= pages} onClick={() => setPage(page + 1)}>
             Next
           </button>
         </div>
@@ -273,7 +273,7 @@ function UserDetail({
           {saving ? 'Saving…' : 'Save changes'}
         </button>
         {user.profileImage && (
-          <button className="btn-icon" type="button" onClick={stripImage}>
+          <button className="btn-text" type="button" onClick={stripImage}>
             <EyeOff size={15} /> Remove photo
           </button>
         )}
@@ -304,11 +304,11 @@ function UserDetail({
 
       {!isSelf && (
         <div className="mt-4 flex items-center gap-3 border-t border-white/10 pt-3">
-          <button className="btn-icon" type="button" style={{ color: '#ff1f9c' }} onClick={deleteUser}>
+          <button className="btn-text" type="button" style={{ color: '#ff1f9c' }} onClick={deleteUser}>
             <Trash2 size={15} /> {confirmDelete ? 'Confirm delete? This removes their links and cards.' : 'Delete user'}
           </button>
           {confirmDelete && (
-            <button className="btn-icon" type="button" onClick={() => setConfirmDelete(false)}>
+            <button className="btn-text" type="button" onClick={() => setConfirmDelete(false)}>
               Cancel
             </button>
           )}

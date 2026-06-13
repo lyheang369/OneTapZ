@@ -79,7 +79,7 @@ export function AdminOrders() {
           <input type="checkbox" checked={unshippedOnly} onChange={(e) => setUnshippedOnly(e.target.checked)} />
           Unshipped only
         </label>
-        <button className="btn-icon" type="button" disabled={exporting} onClick={exportCsv}>
+        <button className="btn-text" type="button" disabled={exporting} onClick={exportCsv}>
           <Download size={15} /> {exporting ? 'Exporting…' : 'Export CSV'}
         </button>
       </div>
