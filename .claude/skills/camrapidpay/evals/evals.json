@@ -1,0 +1,23 @@
+{
+  "skill_name": "camrapidpay",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I'm building a checkout in my Next.js storefront — when a customer clicks 'pay with KHQR' on a $5.50 USD order, I need an API route that creates the payment with CamRapidPay and returns the QR string so the frontend can render it. Order ID is whatever I'm using internally. Can you write that route handler?",
+      "expected_output": "Next.js App Router route at app/api/checkout/khqr/route.ts that loads CamRapidPay credentials from env, calls the create-payment endpoint with USD/5.50 and the order ID, returns the KHQR string + transaction ID. Should use the CamRapidPayClient from the skill's scripts folder rather than raw fetch.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "CamRapidPay is going to POST to /api/webhooks/camrapidpay when a payment lands. Write the handler — it needs to verify the signature properly so randos can't fake a paid status, and update my order in the db (assume there's a markOrderPaid(orderId) function I can call). Also handle if they retry the same webhook twice.",
+      "expected_output": "Next.js webhook handler that reads raw body (not parsed JSON), verifies HMAC-SHA256 signature with timingSafeEqual against CAMRAPIDPAY_WEBHOOK_SECRET, returns 401 on mismatch. Calls markOrderPaid idempotently keyed by transaction_id. Returns 200 quickly. References webhook-verification.md patterns.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "the customer says they paid but my db still shows the order as pending. how do I check on the camrapidpay side what the actual transaction status is? give me a tiny script i can run from my terminal",
+      "expected_output": "A small TS/JS script that takes a transaction ID (CLI arg or env var), calls the CamRapidPayClient.getPaymentStatus method, and prints the status. Loads creds from env, runs against either sandbox or prod based on env var, handles the 404 case (transaction not found) clearly.",
+      "files": []
+    }
+  ]
+}

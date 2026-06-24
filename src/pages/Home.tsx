@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
   ArrowRight,
   BarChart3,
@@ -35,6 +36,12 @@ const useCases = [
 ];
 
 export function Home() {
+  const { user } = useAuth();
+
+  // Logged-in users stay on the marketing page; the CTAs become "Open your
+  // dashboard" instead of redirecting away.
+  const cta = user ? { to: '/dashboard', label: 'Open your dashboard' } : { to: '/register', label: 'Get started' };
+
   return (
     <main className="site-page">
       <section className="lynk-hero">
@@ -52,14 +59,21 @@ export function Home() {
               and NFC card sharing.
             </p>
 
-            <div className="claim-box" aria-label="Create profile URL">
-              <span>onetapz.me/</span>
-              <input aria-label="Username" placeholder="yourname" />
-              <Link to="/register">
-                Create
+            {user ? (
+              <Link className="btn-primary" to="/dashboard">
+                Open your dashboard
                 <ArrowRight size={18} />
               </Link>
-            </div>
+            ) : (
+              <div className="claim-box" aria-label="Create profile URL">
+                <span>onetapz.me/</span>
+                <input aria-label="Username" placeholder="yourname" />
+                <Link to="/register">
+                  Create
+                  <ArrowRight size={18} />
+                </Link>
+              </div>
+            )}
 
             <div className="profile-type-row" aria-label="Profile types">
               {profileTypes.map((type) => (
@@ -154,9 +168,15 @@ export function Home() {
               Your NFC card points to your OneTapZ profile URL. Update the profile from your dashboard
               without reprinting the card.
             </p>
-            <Link className="btn-primary" to="/register">
-              Sign up
-            </Link>
+            <div className="hero-cta-row">
+              <Link className="btn-primary" to="/shop">
+                <ShoppingBag size={18} />
+                Shop NFC cards
+              </Link>
+              <Link className="btn-ghost" to={cta.to}>
+                {user ? 'Open your dashboard' : 'Sign up'}
+              </Link>
+            </div>
           </div>
           <div className="nfc-showcase-card">
             <Wifi size={28} />
@@ -190,8 +210,8 @@ export function Home() {
       <section className="final-cta">
         <div className="page-shell final-cta-inner">
           <h2>Create your OneTapZ profile.</h2>
-          <Link className="btn-primary" to="/register">
-            Get started
+          <Link className="btn-primary" to={cta.to}>
+            {cta.label}
             <ArrowRight size={18} />
           </Link>
         </div>

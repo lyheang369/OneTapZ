@@ -1,0 +1,18 @@
+name: Keep warm
+
+# Pings the API health endpoint on a schedule so the Vercel function (pinned to
+# sin1) stays warm and first-opens after idle don't pay a cold-start penalty.
+# Vercel cron can't do this on the Hobby plan (daily-only), so we use GitHub's
+# scheduler instead. Note: edge-cached profile reads already skip the function,
+# so this only matters for uncached requests (logins, dashboard, first views).
+on:
+  schedule:
+    - cron: '*/10 * * * *' # every 10 minutes (GitHub runs this best-effort)
+  workflow_dispatch: {} # allow manual runs
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: curl -fsS -o /dev/null -w "health: %{http_code} in %{time_total}s\n" https://onetapz.me/api/health

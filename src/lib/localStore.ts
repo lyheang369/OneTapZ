@@ -1,4 +1,3 @@
-import { demoLinks } from '../data/demo';
 import type { LinkItem, User } from './types';
 
 const userKey = (id: string) => `onetapz_user_${id}`;
@@ -56,12 +55,12 @@ export function saveLocalUser(user: User) {
 
 export function readLocalLinks(id: string): LinkItem[] {
   const raw = localStorage.getItem(linksKey(id));
-  if (!raw) return demoLinks;
+  if (!raw) return [];
 
   try {
     return JSON.parse(raw) as LinkItem[];
   } catch {
-    return demoLinks;
+    return [];
   }
 }
 
@@ -96,10 +95,10 @@ export function createLocalAccount(payload: { name: string; email: string; usern
     username,
     bio: '',
     profileImage: '',
-    theme: 'gradient',
+    theme: 'dark',
     buttonStyle: 'pill',
-    buttonBackground: '#2563eb',
-    pageBackground: '#0f172a',
+    buttonBackground: '',
+    pageBackground: '',
     role: 'user',
     isActive: true,
   };

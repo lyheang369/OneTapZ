@@ -54,6 +54,16 @@ export type LinkItem = {
   display?: LinkDisplay;
 };
 
+export type RedirectLink = {
+  _id: string;
+  slug: string;
+  url: string;
+  title: string;
+  isActive: boolean;
+  clickCount: number;
+  createdAt?: string;
+};
+
 export type NfcCard = {
   _id: string;
   cardId: string;
@@ -68,6 +78,18 @@ export type Analytics = {
   tapCount: number;
 };
 
+// User's customization for a printed NFC name card. Travels with the Order so
+// whoever fulfills/prints it has the data (prefilled from the buyer's profile).
+export type CardDesign = {
+  template: string;
+  name: string;
+  tagline: string;
+  handle: string;
+  phone: string;
+  email: string;
+  profileUrl: string;
+};
+
 export type Order = {
   _id: string;
   reference: string;
@@ -78,7 +100,19 @@ export type Order = {
   status: 'pending' | 'paid' | 'expired';
   fulfilled: boolean;
   telegramUsername?: string;
+  cardDesign?: CardDesign;
   createdAt?: string;
+};
+
+export type AdminProduct = {
+  _id: string;
+  slug: string;
+  name: string;
+  description: string;
+  price: number;
+  discountPrice: number;
+  active: boolean;
+  sort?: number;
 };
 
 export type AdminStats = {

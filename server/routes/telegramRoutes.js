@@ -6,6 +6,7 @@ import Link from '../models/Link.js';
 import Analytics from '../models/Analytics.js';
 import { sendTelegramMessage, sendTelegramPhoto, htmlEscape as esc } from '../utils/telegram.js';
 import { checkUrl } from '../utils/urlFilter.js';
+import { getActiveProducts, effectivePrice, resolveLineItems, createShopOrder } from './shopRoutes.js';
 
 const router = express.Router();
 
@@ -28,11 +29,78 @@ function verifySecret(req) {
 const HELP = [
   '<b>OneTapZ bot</b>',
   '',
+  '/shop — browse &amp; order NFC cards',
   '/myprofile — your public link + QR',
   '/stats — your profile views &amp; link clicks',
   '/addlink &lt;url&gt; [title] — add a link to your profile',
   '/help — show this message',
 ].join('\n');
+
+// List the catalog with the /buy command for each. Open to everyone — buying a
+// card doesn't require a OneTapZ account.
+async function cmdShop(chatId) {
+  const products = await getActiveProducts();
+  if (products.length === 0) {
+    await sendTelegramMessage(chatId, 'The shop is empty right now — check back soon.');
+    return;
+  }
+  const lines = ['<b>🛒 OneTapZ Shop</b>', ''];
+  for (const p of products) {
+    const eff = effectivePrice(p);
+    const price = eff < p.price ? `$${eff.toFixed(2)} <s>$${p.price.toFixed(2)}</s>` : `$${p.price.toFixed(2)}`;
+    lines.push(`• <b>${esc(p.name)}</b> — ${price}`);
+    lines.push(`   order: <code>/buy ${esc(p.slug)}</code>`);
+  }
+  lines.push('', 'Add a quantity too, e.g. <code>/buy nfc-card 2</code>.');
+  lines.push('Pay the KHQR with any Bakong-enabled banking app.');
+  await sendTelegramMessage(chatId, lines.join('\n'));
+}
+
+// /buy <productId> [qty] — create the order, send the KHQR to scan. The paid
+// confirmation arrives later via the shop webhook (settleIfPaid -> notify).
+async function cmdBuy(args, chatId, telegramId, username) {
+  const parts = args.trim().split(/\s+/).filter(Boolean);
+  const productId = (parts[0] || '').toLowerCase();
+  const qty = Math.min(Math.max(Math.floor(Number(parts[1]) || 1), 1), 99);
+
+  const lineItems = await resolveLineItems([{ productId, qty }]);
+  if (lineItems.length === 0) {
+    await sendTelegramMessage(chatId, 'Usage: <code>/buy &lt;product&gt; [qty]</code>\nSee /shop for the product list.');
+    return;
+  }
+
+  let order;
+  try {
+    order = await createShopOrder({
+      lineItems,
+      telegramId: String(telegramId),
+      telegramUsername: username || '',
+    });
+  } catch (err) {
+    const msg = err?.status === 501 ? 'Payments are not available right now.' : 'Could not create your order — please try again.';
+    await sendTelegramMessage(chatId, msg);
+    return;
+  }
+
+  const item = lineItems[0];
+  const caption = [
+    `🛒 <b>${esc(item.name)}</b> ×${qty}`,
+    `<b>Total: $${order.amount.toFixed(2)}</b>`,
+    `Ref: <code>${esc(order.reference)}</code>`,
+    '',
+    'Scan this KHQR with any Bakong app to pay.',
+    `Invoice: ${profileBase()}/order/${esc(order.reference)}`,
+    "You'll get a confirmation here once payment is received.",
+  ].join('\n');
+
+  try {
+    const png = await QRCode.toBuffer(order.qrCode, { width: 512, margin: 2 });
+    await sendTelegramPhoto(chatId, png, caption);
+  } catch (err) {
+    console.error('Telegram KHQR render failed', err?.message);
+    await sendTelegramMessage(chatId, `${caption}\n\nKHQR string:\n<code>${esc(order.qrCode)}</code>`);
+  }
+}
 
 async function cmdMyProfile(user, chatId) {
   const url = `${profileBase()}/${user.username}`;
@@ -109,6 +177,16 @@ async function handleUpdate(update) {
   if (command === '/start' || command === '/help') {
     const greeting = user ? `Hi ${esc(user.name || user.username)}!\n\n` : '';
     await sendTelegramMessage(chatId, greeting + HELP);
+    return;
+  }
+
+  // Shop is open to everyone — no OneTapZ account required to buy a card.
+  if (command === '/shop') {
+    await cmdShop(chatId);
+    return;
+  }
+  if (command === '/buy') {
+    await cmdBuy(args, chatId, fromId, message.from?.username);
     return;
   }
 

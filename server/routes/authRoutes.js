@@ -83,8 +83,16 @@ async function uniqueUsername(base) {
   return candidate;
 }
 
+// Email/password auth is disabled — Telegram is the only sign-in path.
+const emailAuthDisabled = (_req, res) =>
+  res.status(403).json({ message: 'Email login is disabled. Sign in with Telegram.' });
+router.post('/register', emailAuthDisabled);
+router.post('/login', emailAuthDisabled);
+
+// ponytail: handlers below are dead while the routes above intercept; kept so
+// re-enabling email auth is a two-line delete, not a rewrite.
 router.post(
-  '/register',
+  '/register-disabled',
   authLimiter,
   asyncHandler(async (req, res) => {
     // Coerce to strings: req.body fields are attacker-controlled and a JSON
@@ -117,7 +125,7 @@ router.post(
 );
 
 router.post(
-  '/login',
+  '/login-disabled',
   authLimiter,
   asyncHandler(async (req, res) => {
     // Coerce to strings so a crafted object body can't smuggle a Mongo operator
@@ -256,6 +264,54 @@ router.post(
       photoUrl: req.body.photo_url,
     });
     res.json({ user: publicUser(user), token: signToken(user), isNew });
+  }),
+);
+
+// Link an existing email/password account to a Telegram identity, then sign in.
+// Lets pre-Telegram users keep their profile/links/cards after email login was retired.
+router.post(
+  '/telegram/link',
+  authLimiter,
+  asyncHandler(async (req, res) => {
+    // Coerce to strings — a crafted object body must not reach Mongo as an operator.
+    const email = typeof req.body.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+    const password = typeof req.body.password === 'string' ? req.body.password : '';
+    const tg = req.body.telegram || {};
+    verifyTelegramPayload(tg);
+
+    const user = await User.findOne({ email }).select('+password');
+    if (!user || !(await user.matchPassword(password))) {
+      return res.status(401).json({ message: 'Invalid email or password.' });
+    }
+    if (!user.isActive) {
+      return res.status(403).json({ message: 'This account is inactive.' });
+    }
+
+    const tgId = String(tg.id);
+    const taken = await User.findOne({ telegramId: tgId });
+    if (taken && String(taken._id) !== String(user._id)) {
+      return res
+        .status(409)
+        .json({ message: 'That Telegram account is already linked to another OneTapZ account.' });
+    }
+
+    user.telegramId = tgId;
+    if (tg.photo_url && !user.profileImage) user.profileImage = tg.photo_url;
+    if (isAdminTelegram(tg.username) && user.role !== 'admin') user.role = 'admin';
+    try {
+      await user.save();
+    } catch (err) {
+      // telegramId is a unique index — a concurrent link can still collide past
+      // the check above; report it as the same 409 instead of a generic 500.
+      if (err && err.code === 11000) {
+        return res
+          .status(409)
+          .json({ message: 'That Telegram account is already linked to another OneTapZ account.' });
+      }
+      throw err;
+    }
+
+    res.json({ user: publicUser(user), token: signToken(user) });
   }),
 );
 

@@ -1,17 +1,29 @@
+import { useEffect, useState } from 'react';
 import { Copy, Eye, Link2, MousePointerClick, Plus, QrCode } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { PhonePreview } from '../components/PhonePreview';
 import { StatCard } from '../components/StatCard';
 import { useAuth } from '../context/AuthContext';
-import { demoAnalytics, demoLinks } from '../data/demo';
-import { publicProfileUrl } from '../lib/api';
+import { api, hasApiSession, publicProfileUrl } from '../lib/api';
 import { readLocalLinks } from '../lib/localStore';
+import type { Analytics, LinkItem } from '../lib/types';
+
+const emptyAnalytics: Analytics = { profileViews: 0, linkClicks: 0, tapCount: 0 };
 
 export function Dashboard() {
   const { user } = useAuth();
-  const profileUrl = publicProfileUrl(user?.username || 'zara');
-  const links = user ? readLocalLinks(user.id) : demoLinks;
+  const profileUrl = publicProfileUrl(user?.username || '');
+  const [analytics, setAnalytics] = useState<Analytics>(emptyAnalytics);
+  // Local-fallback links are read synchronously on first render; API links are
+  // fetched in the effect below. ProtectedRoute guarantees `user` is set here.
+  const [links, setLinks] = useState<LinkItem[]>(() => (user && !hasApiSession() ? readLocalLinks(user.id) : []));
+
+  useEffect(() => {
+    if (!user || !hasApiSession()) return;
+    api.get('/analytics/me').then(({ data }) => setAnalytics(data.analytics ?? emptyAnalytics)).catch(() => {});
+    api.get('/links').then(({ data }) => setLinks(data.links ?? [])).catch(() => {});
+  }, [user]);
 
   if (!user) return null;
 
@@ -20,9 +32,9 @@ export function Dashboard() {
       <div className="grid gap-6 xl:grid-cols-[1fr_360px]">
         <div className="space-y-6">
           <div className="grid gap-4 md:grid-cols-3">
-            <StatCard label="Profile views" value={demoAnalytics.profileViews} icon={Eye} />
-            <StatCard label="Link clicks" value={demoAnalytics.linkClicks} icon={MousePointerClick} />
-            <StatCard label="Total taps" value={demoAnalytics.tapCount} icon={QrCode} />
+            <StatCard label="Profile views" value={analytics.profileViews} icon={Eye} />
+            <StatCard label="Link clicks" value={analytics.linkClicks} icon={MousePointerClick} />
+            <StatCard label="Total taps" value={analytics.tapCount} icon={QrCode} />
           </div>
           <div className="panel p-6">
             <p className="eyebrow">Public link</p>

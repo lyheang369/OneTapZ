@@ -14,6 +14,8 @@ import adminRoutes from './routes/adminRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import shopRoutes from './routes/shopRoutes.js';
 import telegramRoutes from './routes/telegramRoutes.js';
+import redirectRoutes from './routes/redirectRoutes.js';
+import Redirect from './models/Redirect.js';
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
@@ -61,6 +63,25 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/shop', shopRoutes);
 app.use('/api/telegram', telegramRoutes);
+app.use('/api/redirects', redirectRoutes);
+
+// Public short link: onetapz.me/link/<slug> -> 302 to the target. Routed here
+// (not the SPA) via the /link/(.*) rewrite in vercel.json. One atomic query
+// resolves + counts the hit before responding — serverless drops work after
+// res.end(), so the $inc must complete before the redirect, not after.
+app.get('/link/:slug', async (req, res, next) => {
+  try {
+    const slug = String(req.params.slug || '').toLowerCase();
+    const redirect = await Redirect.findOneAndUpdate(
+      { slug, isActive: true },
+      { $inc: { clickCount: 1 } },
+    );
+    if (!redirect) return res.redirect(302, '/');
+    res.redirect(302, redirect.url);
+  } catch (err) {
+    next(err);
+  }
+});
 
 app.use((err, _req, res, _next) => {
   console.error(err);

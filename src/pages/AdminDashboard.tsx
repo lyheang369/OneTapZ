@@ -4,11 +4,13 @@ import { AdminStats } from '../components/admin/AdminStats';
 import { AdminUsers } from '../components/admin/AdminUsers';
 import { AdminOrders } from '../components/admin/AdminOrders';
 import { AdminCards } from '../components/admin/AdminCards';
+import { AdminProducts } from '../components/admin/AdminProducts';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
   { id: 'users', label: 'Users' },
   { id: 'orders', label: 'Orders' },
+  { id: 'products', label: 'Products' },
   { id: 'cards', label: 'NFC Cards' },
 ] as const;
 
@@ -36,6 +38,7 @@ export function AdminDashboard() {
       {tab === 'overview' && <AdminStats />}
       {tab === 'users' && <AdminUsers />}
       {tab === 'orders' && <AdminOrders />}
+      {tab === 'products' && <AdminProducts />}
       {tab === 'cards' && <AdminCards />}
     </DashboardLayout>
   );

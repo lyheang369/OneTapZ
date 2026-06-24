@@ -4,6 +4,7 @@ import Link from '../models/Link.js';
 import Analytics from '../models/Analytics.js';
 import NfcCard from '../models/NfcCard.js';
 import Order from '../models/Order.js';
+import Product from '../models/Product.js';
 import { adminOnly, protect } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
@@ -268,6 +269,89 @@ router.put(
       return res.status(404).json({ message: 'Order not found.' });
     }
     res.json({ order });
+  }),
+);
+
+// ---- Products (shop catalog) ------------------------------------------------
+
+const PRODUCT_SLUG_RE = /^[a-z0-9-]+$/;
+const toMoney = (v) => Math.round((Number(v) || 0) * 100) / 100;
+
+router.get(
+  '/products',
+  asyncHandler(async (_req, res) => {
+    const products = await Product.find().sort('sort');
+    res.json({ products });
+  }),
+);
+
+router.post(
+  '/products',
+  asyncHandler(async (req, res) => {
+    const name = typeof req.body.name === 'string' ? req.body.name.trim() : '';
+    if (!name) throw httpError(400, 'Name is required.');
+
+    const slug = (typeof req.body.slug === 'string' && req.body.slug.trim()
+      ? req.body.slug.trim()
+      : name
+    )
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    if (!PRODUCT_SLUG_RE.test(slug)) throw httpError(400, 'Invalid slug.');
+
+    const price = toMoney(req.body.price);
+    if (price < 0) throw httpError(400, 'Price must be ≥ 0.');
+
+    try {
+      const product = await Product.create({
+        slug,
+        name,
+        description: typeof req.body.description === 'string' ? req.body.description.trim() : '',
+        price,
+        discountPrice: toMoney(req.body.discountPrice),
+        active: req.body.active !== false,
+        sort: Number(req.body.sort) || 0,
+      });
+      res.status(201).json({ product });
+    } catch (err) {
+      if (err.code === 11000) throw httpError(400, 'That slug is already taken.');
+      throw err;
+    }
+  }),
+);
+
+router.put(
+  '/products/:id',
+  asyncHandler(async (req, res) => {
+    const updates = {};
+    if (typeof req.body.name === 'string') updates.name = req.body.name.trim();
+    if (typeof req.body.description === 'string') updates.description = req.body.description.trim();
+    if (req.body.price !== undefined) {
+      const v = toMoney(req.body.price);
+      if (v < 0) throw httpError(400, 'Price must be ≥ 0.');
+      updates.price = v;
+    }
+    if (req.body.discountPrice !== undefined) {
+      const v = toMoney(req.body.discountPrice);
+      if (v < 0) throw httpError(400, 'Discount must be ≥ 0.');
+      updates.discountPrice = v;
+    }
+    if (typeof req.body.active === 'boolean') updates.active = req.body.active;
+    if (req.body.sort !== undefined) updates.sort = Number(req.body.sort) || 0;
+
+    const product = await Product.findByIdAndUpdate(req.params.id, updates, { new: true, runValidators: true });
+    if (!product) return res.status(404).json({ message: 'Product not found.' });
+    res.json({ product });
+  }),
+);
+
+router.delete(
+  '/products/:id',
+  asyncHandler(async (req, res) => {
+    const product = await Product.findByIdAndDelete(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found.' });
+    res.json({ message: 'Product deleted.' });
   }),
 );
 

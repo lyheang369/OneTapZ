@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
-import { BarChart3, CreditCard, LayoutDashboard, Link2, UserPen } from 'lucide-react';
+import { BarChart3, CreditCard, Forward, LayoutDashboard, Link2, UserPen } from 'lucide-react';
 
 const items = [
   { to: '/dashboard', label: 'Overview', icon: LayoutDashboard },
   { to: '/edit-profile', label: 'Edit profile', icon: UserPen },
   { to: '/links', label: 'Manage links', icon: Link2 },
+  { to: '/redirects', label: 'Redirects', icon: Forward },
   { to: '/nfc', label: 'NFC card', icon: CreditCard },
   { to: '/analytics', label: 'Analytics', icon: BarChart3 },
 ];

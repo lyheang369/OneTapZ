@@ -1,6 +1,7 @@
 import { Link, NavLink } from 'react-router-dom';
-import { Hand, LogOut, Menu, Sparkles } from 'lucide-react';
+import { LogOut, Menu } from 'lucide-react';
 import { useState } from 'react';
+import { BrandMark } from './BrandMark';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
@@ -19,8 +20,7 @@ export function Navbar() {
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link to="/" className="brand-mark">
           <span className="brand-icon">
-            <Hand size={19} />
-            <Sparkles className="brand-spark" size={10} />
+            <BrandMark size={22} />
           </span>
           <span>OneTapZ</span>
         </Link>
@@ -44,6 +44,9 @@ export function Navbar() {
         </div>
 
         <div className="desktop-auth">
+          <NavLink to="/shop" className="nav-link">
+            Shop
+          </NavLink>
           {!user && (
             <>
               <Link className="btn-ghost" to="/login">
@@ -68,6 +71,9 @@ export function Navbar() {
 
       {open && (
         <div className="mobile-menu space-y-2 px-4 py-4 md:hidden">
+          <NavLink to="/shop" className="mobile-nav-link" onClick={() => setOpen(false)}>
+            Shop
+          </NavLink>
           {user ? (
             <>
               {navItems.map((item) => (

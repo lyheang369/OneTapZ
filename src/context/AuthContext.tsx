@@ -2,7 +2,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { api } from '../lib/api';
-import { createLocalAccount, loginLocalAccount, readLocalAccountUser, readLocalUser, saveLocalUser } from '../lib/localStore';
+import { createLocalAccount, loginLocalAccount, readLocalAccountUser, saveLocalUser } from '../lib/localStore';
 import type { User } from '../lib/types';
 
 type AuthContextValue = {
@@ -12,8 +12,13 @@ type AuthContextValue = {
   login: (email: string, password: string) => Promise<void>;
   register: (payload: { name: string; email: string; username: string; password: string }) => Promise<void>;
   loginWithTelegram: (payload: TelegramLoginPayload) => Promise<void>;
+  linkTelegram: (email: string, password: string, payload: TelegramLoginPayload) => Promise<void>;
   logout: () => void;
   setUser: (user: User) => void;
+  // True right after a brand-new Telegram Mini App user is provisioned, so the
+  // app can route them through username onboarding before the dashboard.
+  pendingOnboard: boolean;
+  clearOnboard: () => void;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -30,21 +35,48 @@ export type TelegramLoginPayload = {
 
 const normalizeUser = (user: User): User => ({
   ...user,
+  theme: user.theme || 'dark',
   buttonStyle: user.buttonStyle || 'pill',
-  buttonBackground: user.buttonBackground || '#2563eb',
-  pageBackground: user.pageBackground || '#0f172a',
+  // Empty = "use the theme's palette". Don't backfill a color or the theme's
+  // own primary/background tokens would always be overridden.
+  buttonBackground: user.buttonBackground || '',
+  pageBackground: user.pageBackground || '',
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('onetapz_token'));
   const [loading, setLoading] = useState(true);
+  const [pendingOnboard, setPendingOnboard] = useState(false);
 
   useEffect(() => {
     let alive = true;
 
     async function loadMe() {
       setLoading(true);
+
+      // Telegram Mini App: when launched inside Telegram with no existing
+      // session, auto-authenticate from the signed initData.
+      const tg = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined;
+      if (tg) {
+        tg.ready?.();
+        tg.expand?.();
+      }
+      if (tg?.initData && !token) {
+        try {
+          const { data } = await api.post('/auth/telegram/webapp', { initData: tg.initData });
+          localStorage.setItem('onetapz_token', data.token);
+          if (alive) {
+            setToken(data.token);
+            setUser(normalizeUser(data.user));
+            if (data.isNew) setPendingOnboard(true);
+            setLoading(false);
+          }
+          return;
+        } catch {
+          // Fall through to the normal flow if verification fails.
+        }
+      }
 
       if (!token) {
         if (alive) setUser(null);
@@ -61,7 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       try {
         const { data } = await api.get('/auth/me');
-        const nextUser = normalizeUser({ ...data.user, ...readLocalUser(data.user.id) });
+        const nextUser = normalizeUser(data.user);
         if (alive) setUser(nextUser);
       } catch {
         localStorage.removeItem('onetapz_token');
@@ -82,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data } = await api.post('/auth/login', { email, password });
       localStorage.setItem('onetapz_token', data.token);
       setToken(data.token);
-      const nextUser = normalizeUser({ ...data.user, ...readLocalUser(data.user.id) });
+      const nextUser = normalizeUser(data.user);
       setUser(nextUser);
     } catch {
       const localUser = normalizeUser(loginLocalAccount(email, password));
@@ -112,14 +144,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await api.post('/auth/telegram', payload);
     localStorage.setItem('onetapz_token', data.token);
     setToken(data.token);
-    const nextUser = normalizeUser({ ...data.user, ...readLocalUser(data.user.id) });
+    const nextUser = normalizeUser(data.user);
     setUser(nextUser);
+  }
+
+  async function linkTelegram(email: string, password: string, payload: TelegramLoginPayload) {
+    const { data } = await api.post('/auth/telegram/link', { email, password, telegram: payload });
+    localStorage.setItem('onetapz_token', data.token);
+    setToken(data.token);
+    setUser(normalizeUser(data.user));
   }
 
   function logout() {
     localStorage.removeItem('onetapz_token');
     setToken(null);
     setUser(null);
+    setPendingOnboard(false);
+  }
+
+  function clearOnboard() {
+    setPendingOnboard(false);
   }
 
   function updateUser(nextUser: User) {
@@ -129,7 +173,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, loginWithTelegram, logout, setUser: updateUser }}>
+    <AuthContext.Provider
+      value={{ user, token, loading, login, register, loginWithTelegram, linkTelegram, logout, setUser: updateUser, pendingOnboard, clearOnboard }}
+    >
       {children}
     </AuthContext.Provider>
   );

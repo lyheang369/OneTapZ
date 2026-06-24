@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* Card headline font — Lilita One (OFL), a close match to the PSD template's
+   chunky rounded display face. Self-hosted at public/fonts/card-display.ttf. */
+@font-face {
+  font-family: 'CardDisplay';
+  src: url('/fonts/card-display.ttf') format('truetype');
+  font-weight: 400 900;
+  font-display: swap;
+}
+
 /* ============================================================
    ONETAPZ — ACID POP / Y2K CYBER
    acid lime + hot magenta on near-black, chrome stickers,

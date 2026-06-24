@@ -39,6 +39,7 @@ async function main() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       commands: [
+        { command: 'shop', description: 'Browse & order NFC cards' },
         { command: 'myprofile', description: 'Your public link + QR' },
         { command: 'stats', description: 'Your profile views & link clicks' },
         { command: 'addlink', description: 'Add a link: /addlink <url> [title]' },
