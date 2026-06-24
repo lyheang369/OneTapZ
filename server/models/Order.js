@@ -38,6 +38,7 @@ const orderSchema = new mongoose.Schema(
       area: { type: String, default: '' }, // 'phnom-penh' | 'province' (delivery only)
       courier: { type: String, default: '' }, // provincial courier (province only)
       address: { type: String, default: '' }, // delivery address (delivery only)
+      fee: { type: Number, default: 0 }, // server-set delivery fee folded into amount
     },
     status: { type: String, enum: ['pending', 'paid', 'expired'], default: 'pending' },
     paidAt: Date,

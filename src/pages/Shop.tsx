@@ -19,6 +19,7 @@ type Step = (typeof STEPS)[number]['id'];
 
 // Provincial couriers offered for delivery; Phnom Penh ships direct.
 const COURIERS = ['VET', 'J&T', 'ZTO', 'L192 Express'] as const;
+const DELIVERY_FEE = 1.5; // mirrors server DELIVERY_FEE; server recomputes the authoritative amount
 const PICKUP_ADDRESS =
   'CamTech campus — CamTech Street, Chroy Chongvar Satellite City, Sangkat Prektasek, Khan Chroy Chongvar, Phnom Penh, Cambodia';
 type Delivery = { method: 'pickup' | 'delivery'; area: 'phnom-penh' | 'province'; courier: string; address: string };
@@ -81,7 +82,9 @@ export function Shop() {
   }, []);
 
   const selectedProduct = useMemo(() => products.find((p) => p.id === selectedId) ?? null, [products, selectedId]);
-  const total = selectedProduct ? selectedProduct.effectivePrice * count : 0;
+  const itemsTotal = selectedProduct ? selectedProduct.effectivePrice * count : 0;
+  const deliveryFee = delivery.method === 'delivery' ? DELIVERY_FEE : 0;
+  const total = Math.round((itemsTotal + deliveryFee) * 100) / 100;
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
   // Render the KHQR string to an image (high error-correction so the centered
@@ -331,6 +334,12 @@ export function Shop() {
                     <div className="shop-summary-row">
                       <span>Handle</span>
                       <span className="truncate">@{card.handle}</span>
+                    </div>
+                  )}
+                  {deliveryFee > 0 && (
+                    <div className="shop-summary-row">
+                      <span>Delivery</span>
+                      <span>${deliveryFee.toFixed(2)}</span>
                     </div>
                   )}
                   <div className="shop-summary-row total">

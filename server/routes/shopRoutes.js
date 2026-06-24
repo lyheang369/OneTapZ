@@ -19,9 +19,12 @@ const checkoutLimiter = rateLimit({ windowMs: 10 * 60 * 1000, max: 20 });
 // design's template id). Seeded into the DB-backed catalog so a fresh deploy has
 // something to sell; prices/availability are editable from the admin dashboard.
 const DESIGN_PRODUCTS = [
-  { slug: 'acid-pop', name: 'Acid Pop', description: 'Y2K acid-pop card — bold 3D type with star & heart art.', price: 2, discountPrice: 1, active: true, sort: 0 },
-  { slug: 'mono', name: 'Minimal', description: 'Clean minimal card — black on white, understated.', price: 2, discountPrice: 1, active: true, sort: 1 },
+  { slug: 'acid-pop', name: 'UV DTF Sticker design with NFC Card', description: 'UV DTF sticker design printed on an NFC card — bold 3D type with star & heart art.', price: 2.5, discountPrice: 0, active: true, sort: 0 },
+  { slug: 'mono', name: 'Blank NFC card', description: 'Plain NFC card — no printed design.', price: 1, discountPrice: 0, active: true, sort: 1 },
 ];
+
+// Flat fee added to the order total when the buyer chooses delivery (pickup is free).
+export const DELIVERY_FEE = 1.5;
 
 // Charged price: the discount when set and below full price, else full price.
 export function effectivePrice(p) {
@@ -110,7 +113,10 @@ function sanitizeDelivery(d) {
 // unauthenticated bearer capability for the public invoice, so the random part
 // stays 16 bytes (128 bits) of CSPRNG output.
 export async function createShopOrder({ lineItems, telegramId, telegramUsername = '', name = '', phone = '', cardDesign = null, delivery = null }) {
-  const amount = Math.round(lineItems.reduce((sum, i) => sum + i.price * i.qty, 0) * 100) / 100;
+  const dv = sanitizeDelivery(delivery);
+  const fee = dv?.method === 'delivery' ? DELIVERY_FEE : 0;
+  const itemsTotal = lineItems.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const amount = Math.round((itemsTotal + fee) * 100) / 100;
   const reference = `SHOP-${Date.now()}-${crypto.randomBytes(16).toString('hex')}`;
   await Order.create({
     reference,
@@ -120,7 +126,7 @@ export async function createShopOrder({ lineItems, telegramId, telegramUsername 
     telegramId,
     telegramUsername,
     cardDesign: sanitizeCardDesign(cardDesign),
-    delivery: sanitizeDelivery(delivery),
+    delivery: dv ? { ...dv, fee } : undefined,
     status: 'pending',
   });
   const base = process.env.PUBLIC_BASE_URL || process.env.CLIENT_URL || 'https://onetapz.me';
@@ -244,7 +250,8 @@ async function notifyOrderPaid(order) {
   let deliveryBlock = '';
   if (dv?.method === 'delivery') {
     const area = dv.area === 'province' ? `Province${dv.courier ? ` · ${esc(dv.courier)}` : ''}` : 'Phnom Penh';
-    deliveryBlock = `\n\n🚚 <b>Delivery</b>\n${area}${dv.address ? `\n${esc(dv.address)}` : ''}`;
+    const feeLine = dv.fee ? `\nFee: $${dv.fee.toFixed(2)}` : '';
+    deliveryBlock = `\n\n🚚 <b>Delivery</b>\n${area}${dv.address ? `\n${esc(dv.address)}` : ''}${feeLine}`;
   } else {
     deliveryBlock = `\n\n🚚 <b>Pickup</b>\nCamTech campus`;
   }
