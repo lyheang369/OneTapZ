@@ -7,6 +7,8 @@ import Order from '../models/Order.js';
 import Product from '../models/Product.js';
 import { adminOnly, protect } from '../middleware/auth.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { sendTelegramMessage, htmlEscape } from '../utils/telegram.js';
+import { ORDER_STAGES, stageLabel } from '../utils/orderStage.js';
 
 const router = express.Router();
 
@@ -268,6 +270,50 @@ router.put(
     if (!order) {
       return res.status(404).json({ message: 'Order not found.' });
     }
+    res.json({ order });
+  }),
+);
+
+// Advance an order's fulfillment stage and notify the buyer over Telegram.
+router.put(
+  '/orders/:id/stage',
+  asyncHandler(async (req, res) => {
+    const stage = String(req.body.stage || '');
+    if (!ORDER_STAGES.includes(stage)) {
+      return res.status(400).json({ message: 'Invalid stage.' });
+    }
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found.' });
+
+    order.stage = stage;
+    if (stage === 'dispatched' || stage === 'completed') order.fulfilled = true;
+
+    const label = stageLabel(stage, order.delivery?.method);
+    if (order.telegramId) {
+      await sendTelegramMessage(
+        order.telegramId,
+        `📦 <b>Order update</b>\nRef: <code>${htmlEscape(order.reference)}</code>\nStatus: <b>${htmlEscape(label)}</b>`,
+      );
+      order.messages.push({ from: 'admin', text: `Status → ${label}`, at: new Date() });
+    }
+    await order.save();
+    res.json({ order });
+  }),
+);
+
+// Send a free-text message to the buyer over Telegram and record it on the order.
+router.post(
+  '/orders/:id/message',
+  asyncHandler(async (req, res) => {
+    const text = String(req.body.text || '').trim().slice(0, 2000);
+    if (!text) return res.status(400).json({ message: 'Message is empty.' });
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: 'Order not found.' });
+    if (!order.telegramId) return res.status(400).json({ message: 'This buyer has no linked Telegram.' });
+
+    await sendTelegramMessage(order.telegramId, `💬 <b>OneTapZ</b>\n${htmlEscape(text)}`);
+    order.messages.push({ from: 'admin', text, at: new Date() });
+    await order.save();
     res.json({ order });
   }),
 );

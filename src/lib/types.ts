@@ -99,10 +99,29 @@ export type Order = {
   customer: { name: string; phone: string; address: string };
   status: 'pending' | 'paid' | 'expired';
   fulfilled: boolean;
+  stage?: 'preparing' | 'printing' | 'dispatched' | 'completed';
+  messages?: { from: 'admin' | 'buyer'; text: string; at: string }[];
+  delivery?: { method: 'pickup' | 'delivery'; area?: string; courier?: string; address?: string; fee?: number };
   telegramUsername?: string;
+  telegramId?: string;
   cardDesign?: CardDesign;
   createdAt?: string;
 };
+
+export const ORDER_STAGES = ['preparing', 'printing', 'dispatched', 'completed'] as const;
+export type OrderStage = (typeof ORDER_STAGES)[number];
+export function stageLabel(stage: OrderStage | undefined, method?: 'pickup' | 'delivery'): string {
+  switch (stage) {
+    case 'printing':
+      return 'Printing';
+    case 'dispatched':
+      return method === 'delivery' ? 'Shipped' : 'Ready for pickup';
+    case 'completed':
+      return 'Completed';
+    default:
+      return 'Preparing';
+  }
+}
 
 export type AdminProduct = {
   _id: string;

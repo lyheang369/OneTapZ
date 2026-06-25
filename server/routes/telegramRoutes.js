@@ -4,8 +4,10 @@ import QRCode from 'qrcode';
 import User from '../models/User.js';
 import Link from '../models/Link.js';
 import Analytics from '../models/Analytics.js';
+import Order from '../models/Order.js';
 import { sendTelegramMessage, sendTelegramPhoto, htmlEscape as esc } from '../utils/telegram.js';
 import { checkUrl } from '../utils/urlFilter.js';
+import { stageLabel } from '../utils/orderStage.js';
 import { getActiveProducts, effectivePrice, resolveLineItems, createShopOrder } from './shopRoutes.js';
 
 const router = express.Router();
@@ -30,6 +32,7 @@ const HELP = [
   '<b>OneTapZ bot</b>',
   '',
   '/shop — browse &amp; order NFC cards',
+  '/orders — track your orders &amp; their status',
   '/myprofile — your public link + QR',
   '/stats — your profile views &amp; link clicks',
   '/addlink &lt;url&gt; [title] — add a link to your profile',
@@ -102,6 +105,40 @@ async function cmdBuy(args, chatId, telegramId, username) {
   }
 }
 
+// /orders — list the buyer's recent orders with payment + fulfillment status.
+async function cmdOrders(user, chatId) {
+  const orders = await Order.find({ telegramId: String(user.telegramId) }).sort('-createdAt').limit(5);
+  if (orders.length === 0) {
+    await sendTelegramMessage(chatId, 'You have no orders yet. Send /shop to browse cards.');
+    return;
+  }
+  const lines = ['<b>📦 Your orders</b>', ''];
+  for (const o of orders) {
+    const state = o.status === 'paid' ? stageLabel(o.stage, o.delivery?.method) : o.status;
+    lines.push(`• <code>${esc(o.reference)}</code> — <b>${esc(state)}</b> ($${o.amount.toFixed(2)})`);
+  }
+  lines.push('', 'Reply here anytime and our team will get your message.');
+  await sendTelegramMessage(chatId, lines.join('\n'));
+}
+
+// A plain (non-command) message from a buyer: attach it to their latest order
+// and alert admins. This is the inbound half of the two-way order chat.
+async function handleBuyerMessage(fromId, username, text, chatId) {
+  const order = await Order.findOne({ telegramId: String(fromId) }).sort('-createdAt');
+  if (!order) {
+    await sendTelegramMessage(chatId, 'Send /shop to browse, /orders to track an order, or /help for commands.');
+    return;
+  }
+  order.messages.push({ from: 'buyer', text: text.slice(0, 2000), at: new Date() });
+  await order.save();
+  await sendTelegramMessage(chatId, '✅ Got it — our team will reply here shortly.');
+
+  const admins = await User.find({ role: 'admin', telegramId: { $nin: ['', null] } }).select('telegramId');
+  const who = username ? `@${esc(username)}` : esc(order.customer?.name || String(fromId));
+  const adminMsg = `💬 <b>Buyer message</b> (${who})\nRef: <code>${esc(order.reference)}</code>\n\n${esc(text)}`;
+  for (const admin of admins) await sendTelegramMessage(admin.telegramId, adminMsg);
+}
+
 async function cmdMyProfile(user, chatId) {
   const url = `${profileBase()}/${user.username}`;
   try {
@@ -166,7 +203,13 @@ async function handleUpdate(update) {
   const chatId = message?.chat?.id;
   const fromId = message?.from?.id;
   const text = (message?.text || '').trim();
-  if (!chatId || !fromId || !text.startsWith('/')) return;
+  if (!chatId || !fromId || !text) return;
+
+  // Plain text (not a slash command) = a buyer replying on their order thread.
+  if (!text.startsWith('/')) {
+    await handleBuyerMessage(fromId, message.from?.username, text, chatId);
+    return;
+  }
 
   const [token] = text.split(/\s+/);
   const command = token.replace(/@.*$/, '').toLowerCase(); // strip @botname suffix
@@ -199,6 +242,9 @@ async function handleUpdate(update) {
   }
 
   switch (command) {
+    case '/orders':
+      await cmdOrders(user, chatId);
+      break;
     case '/myprofile':
       await cmdMyProfile(user, chatId);
       break;

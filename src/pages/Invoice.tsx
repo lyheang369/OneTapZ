@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Check, Clock, Loader2, Send } from 'lucide-react';
 import { api } from '../lib/api';
+import { ORDER_STAGES, stageLabel, type OrderStage } from '../lib/types';
 
 type InvoiceOrder = {
   reference: string;
@@ -10,6 +11,8 @@ type InvoiceOrder = {
   currency: string;
   status: 'pending' | 'paid' | 'expired';
   fulfilled: boolean;
+  stage?: OrderStage;
+  deliveryMethod?: 'pickup' | 'delivery';
   customerName: string;
   createdAt?: string;
   paidAt?: string;
@@ -52,9 +55,12 @@ export function Invoice() {
     );
   }
 
+  const currentStage = order.stage ?? 'preparing';
+  const stageIndex = ORDER_STAGES.indexOf(currentStage);
+
   const badge =
     order.status === 'paid'
-      ? { cls: 'inv-paid', label: order.fulfilled ? 'Paid · Shipped' : 'Paid', Icon: Check }
+      ? { cls: 'inv-paid', label: `Paid · ${stageLabel(currentStage, order.deliveryMethod)}`, Icon: Check }
       : order.status === 'expired'
         ? { cls: 'inv-expired', label: 'Expired', Icon: Clock }
         : { cls: 'inv-pending', label: 'Awaiting payment', Icon: Loader2 };
@@ -97,8 +103,21 @@ export function Invoice() {
             {order.paidAt && <p>Paid: {new Date(order.paidAt).toLocaleString()}</p>}
           </div>
 
+          {order.status === 'paid' && (
+            <div className="invoice-track">
+              {ORDER_STAGES.map((s, i) => (
+                <div key={s} className={`invoice-track-step ${i <= stageIndex ? 'done' : ''}`}>
+                  <span className="invoice-track-dot" />
+                  {stageLabel(s, order.deliveryMethod)}
+                </div>
+              ))}
+            </div>
+          )}
+
           {order.status === 'paid' ? (
-            <p className="invoice-note ok">Payment received — we'll arrange delivery with you.</p>
+            <p className="invoice-note ok">
+              Payment received — your card is customized &amp; printed in 3–5 working days. Track progress above.
+            </p>
           ) : order.status === 'expired' ? (
             <p className="invoice-note bad">This payment window expired. Place the order again from the shop.</p>
           ) : (

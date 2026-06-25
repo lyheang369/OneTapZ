@@ -320,6 +320,8 @@ router.get(
         currency: order.currency,
         status: order.status,
         fulfilled: order.fulfilled,
+        stage: order.stage,
+        deliveryMethod: order.delivery?.method || 'pickup',
         customerName: order.customer?.name || '',
         createdAt: order.createdAt,
         paidAt: order.paidAt,

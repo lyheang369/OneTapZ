@@ -43,6 +43,16 @@ const orderSchema = new mongoose.Schema(
     status: { type: String, enum: ['pending', 'paid', 'expired'], default: 'pending' },
     paidAt: Date,
     fulfilled: { type: Boolean, default: false },
+    // Post-payment fulfillment stage; admin advances it, buyer is notified.
+    stage: { type: String, enum: ['preparing', 'printing', 'dispatched', 'completed'], default: 'preparing' },
+    // Two-way message thread between admin and buyer (mirrored over Telegram).
+    messages: [
+      {
+        from: { type: String, enum: ['admin', 'buyer'], required: true },
+        text: { type: String, default: '' },
+        at: { type: Date, default: Date.now },
+      },
+    ],
   },
   { timestamps: true },
 );
