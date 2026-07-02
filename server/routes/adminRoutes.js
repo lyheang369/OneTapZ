@@ -194,16 +194,40 @@ router.delete(
 
 // ---- Orders -----------------------------------------------------------------
 
+// Shared order list filter: status / fulfilled / stage / free-text search over
+// reference, buyer name and Telegram handle (regex-escaped — q is untrusted).
+function orderFilter(query) {
+  const filter = {};
+  if (['pending', 'paid', 'expired'].includes(query.status)) filter.status = query.status;
+  if (query.fulfilled === 'true') filter.fulfilled = true;
+  if (query.fulfilled === 'false') filter.fulfilled = false;
+  if (ORDER_STAGES.includes(query.stage)) {
+    // Pre-stage-feature orders have no `stage`; treat missing as 'preparing'.
+    filter.stage = query.stage === 'preparing' ? { $in: [null, 'preparing'] } : query.stage;
+    filter.status = 'paid'; // stages only exist post-payment
+  }
+  const q = typeof query.q === 'string' ? query.q.trim().slice(0, 100) : '';
+  if (q) {
+    const rx = new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'i');
+    filter.$or = [{ reference: rx }, { 'customer.name': rx }, { telegramUsername: rx }];
+  }
+  return filter;
+}
+
 router.get(
   '/orders',
   asyncHandler(async (req, res) => {
-    const filter = {};
-    if (['pending', 'paid', 'expired'].includes(req.query.status)) filter.status = req.query.status;
-    if (req.query.fulfilled === 'true') filter.fulfilled = true;
-    if (req.query.fulfilled === 'false') filter.fulfilled = false;
-
-    const orders = await Order.find(filter).sort('-createdAt').limit(200);
-    res.json({ orders });
+    const [orders, stageAgg] = await Promise.all([
+      Order.find(orderFilter(req.query)).sort('-createdAt').limit(200),
+      // Orders created before the stage feature have no `stage` — count them as 'preparing'.
+      Order.aggregate([
+        { $match: { status: 'paid' } },
+        { $group: { _id: { $ifNull: ['$stage', 'preparing'] }, count: { $sum: 1 } } },
+      ]),
+    ]);
+    const stageCounts = Object.fromEntries(ORDER_STAGES.map((s) => [s, 0]));
+    for (const row of stageAgg) if (row._id in stageCounts) stageCounts[row._id] = row.count;
+    res.json({ orders, stageCounts });
   }),
 );
 
@@ -219,15 +243,11 @@ const csvCell = (value) => {
 router.get(
   '/orders.csv',
   asyncHandler(async (req, res) => {
-    const filter = {};
-    if (['pending', 'paid', 'expired'].includes(req.query.status)) filter.status = req.query.status;
-    if (req.query.fulfilled === 'true') filter.fulfilled = true;
-    if (req.query.fulfilled === 'false') filter.fulfilled = false;
-
-    const orders = await Order.find(filter).sort('-createdAt').limit(5000).lean();
+    const orders = await Order.find(orderFilter(req.query)).sort('-createdAt').limit(5000).lean();
     const header = [
       'reference',
       'status',
+      'stage',
       'fulfilled',
       'amount',
       'currency',
@@ -235,6 +255,8 @@ router.get(
       'customerName',
       'phone',
       'telegramUsername',
+      'delivery',
+      'address',
       'createdAt',
       'paidAt',
     ];
@@ -242,6 +264,7 @@ router.get(
       [
         o.reference,
         o.status,
+        o.status === 'paid' ? o.stage || 'preparing' : '',
         o.fulfilled ? 'yes' : 'no',
         (o.amount ?? 0).toFixed(2),
         o.currency || 'USD',
@@ -249,6 +272,10 @@ router.get(
         o.customer?.name || '',
         o.customer?.phone || '',
         o.telegramUsername || '',
+        o.delivery?.method === 'delivery'
+          ? `${o.delivery.area === 'province' ? `province via ${o.delivery.courier}` : 'phnom-penh'}`
+          : 'pickup',
+        o.delivery?.address || '',
         o.createdAt ? new Date(o.createdAt).toISOString() : '',
         o.paidAt ? new Date(o.paidAt).toISOString() : '',
       ]

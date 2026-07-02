@@ -11,7 +11,11 @@ export type ThemeName =
   | 'ocean'
   | 'rose'
   | 'mono'
-  | 'aurora';
+  | 'aurora'
+  | 'midnight'
+  | 'ember'
+  | 'candy'
+  | 'mocha';
 export type ButtonStyle = 'rounded' | 'pill' | 'square' | 'glass' | 'outline' | 'soft';
 
 export type User = {

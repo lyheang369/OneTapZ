@@ -108,16 +108,25 @@ function sanitizeDelivery(d) {
   };
 }
 
+// Order reference. It doubles as the KHQR bill number, which the EMV spec (and
+// CamRapidPay — verified: 51-char refs are rejected with "Failed to generate
+// KHQR") caps at 25 chars, so it must stay short. 17 base36 chars ≈ 88 bits of
+// CSPRNG output — still an unguessable bearer capability for the public invoice.
+function makeOrderReference() {
+  const alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  let random = '';
+  for (const byte of crypto.randomBytes(17)) random += alphabet[byte % 36];
+  return `SHOP-${random}`;
+}
+
 // Create a pending Order + its KHQR payment, returning the invoice essentials.
-// Used by both the web checkout and the bot's /buy command. The reference is an
-// unauthenticated bearer capability for the public invoice, so the random part
-// stays 16 bytes (128 bits) of CSPRNG output.
+// Used by both the web checkout and the bot's /buy command.
 export async function createShopOrder({ lineItems, telegramId, telegramUsername = '', name = '', phone = '', cardDesign = null, delivery = null }) {
   const dv = sanitizeDelivery(delivery);
   const fee = dv?.method === 'delivery' ? DELIVERY_FEE : 0;
   const itemsTotal = lineItems.reduce((sum, i) => sum + i.price * i.qty, 0);
   const amount = Math.round((itemsTotal + fee) * 100) / 100;
-  const reference = `SHOP-${Date.now()}-${crypto.randomBytes(16).toString('hex')}`;
+  const reference = makeOrderReference();
   await Order.create({
     reference,
     items: lineItems,
@@ -130,7 +139,14 @@ export async function createShopOrder({ lineItems, telegramId, telegramUsername 
     status: 'pending',
   });
   const base = process.env.PUBLIC_BASE_URL || process.env.CLIENT_URL || 'https://onetapz.me';
-  const payment = await createKhqrPayment({ amount, reference, webhookUrl: `${base}/api/shop/webhook` });
+  let payment;
+  try {
+    payment = await createKhqrPayment({ amount, reference, webhookUrl: `${base}/api/shop/webhook` });
+  } catch (err) {
+    // Don't leave an unpayable pending order behind if the gateway call fails.
+    await Order.deleteOne({ reference }).catch(() => {});
+    throw err;
+  }
   return { reference, amount, qrCode: payment.qr_code, paymentUrl: payment.payment_url, expiresIn: payment.expires_in };
 }
 

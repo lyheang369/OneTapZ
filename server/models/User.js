@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     saveContactDisplay: { type: String, enum: ['button', 'icon'], default: 'button' },
     theme: {
       type: String,
-      enum: ['acid', 'dark', 'light', 'blue', 'purple', 'minimal', 'gradient', 'sunset', 'forest', 'ocean', 'rose', 'mono', 'aurora'],
+      enum: ['acid', 'dark', 'light', 'blue', 'purple', 'minimal', 'gradient', 'sunset', 'forest', 'ocean', 'rose', 'mono', 'aurora', 'midnight', 'ember', 'candy', 'mocha'],
       default: 'gradient',
     },
     buttonStyle: {

@@ -13,6 +13,7 @@ type CheckoutResult = { reference: string; amount: number; qrCode: string; payme
 const STEPS = [
   { id: 'design', label: 'Design' },
   { id: 'customize', label: 'Customize' },
+  { id: 'delivery', label: 'Delivery' },
   { id: 'payment', label: 'Payment' },
 ] as const;
 type Step = (typeof STEPS)[number]['id'];
@@ -291,69 +292,22 @@ export function Shop() {
                   <button className="btn-text" type="button" onClick={() => setStep('design')}>
                     Back
                   </button>
-                  <button className="btn-primary flex-1 justify-center" type="button" onClick={() => setStep('payment')}>
+                  <button className="btn-primary flex-1 justify-center" type="button" onClick={() => setStep('delivery')}>
                     Continue
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Step 3 — payment method + pay */}
-            {step === 'payment' && (
+            {/* Step 3 — pickup or delivery */}
+            {step === 'delivery' && (
               <div className="panel shop-checkout p-6">
-                <h2 className="text-xl font-bold text-white">Payment</h2>
-
-                <div className="shop-summary mt-4">
-                  <div className="shop-summary-row">
-                    <span>Quantity</span>
-                    <div className="qty-stepper">
-                      <button type="button" onClick={() => setCount((c) => Math.max(1, c - 1))} aria-label="Decrease quantity">
-                        <Minus size={15} />
-                      </button>
-                      <span>{count}</span>
-                      <button type="button" onClick={() => setCount((c) => Math.min(99, c + 1))} aria-label="Increase quantity">
-                        <Plus size={15} />
-                      </button>
-                    </div>
-                  </div>
-                  {selectedProduct && (
-                    <div className="shop-summary-row">
-                      <span>
-                        {selectedProduct.name} × {count}
-                      </span>
-                      <span>${(selectedProduct.effectivePrice * count).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {card.name && (
-                    <div className="shop-summary-row">
-                      <span>Name on card</span>
-                      <span className="truncate">{card.name}</span>
-                    </div>
-                  )}
-                  {card.handle && (
-                    <div className="shop-summary-row">
-                      <span>Handle</span>
-                      <span className="truncate">@{card.handle}</span>
-                    </div>
-                  )}
-                  {deliveryFee > 0 && (
-                    <div className="shop-summary-row">
-                      <span>Delivery</span>
-                      <span>${deliveryFee.toFixed(2)}</span>
-                    </div>
-                  )}
-                  <div className="shop-summary-row total">
-                    <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                <p className="mt-3 text-sm text-slate-400">
-                  ✦ Customization &amp; printing takes <strong className="text-white">3–5 working days</strong> before dispatch.
+                <h2 className="text-xl font-bold text-white">Delivery</h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  Customization &amp; printing takes <strong className="text-white">3–5 working days</strong> before your card is ready.
                 </p>
 
-                <p className="field-label mt-5">Delivery</p>
-                <div className="flex flex-col gap-2">
+                <div className="mt-4 flex flex-col gap-2">
                   <label style={optStyle(delivery.method === 'pickup')}>
                     <input
                       type="radio"
@@ -376,7 +330,7 @@ export function Shop() {
                       onChange={() => setDelivery((d) => ({ ...d, method: 'delivery' }))}
                     />
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <p className="font-bold text-white">Delivery</p>
+                      <p className="font-bold text-white">Delivery — ${DELIVERY_FEE.toFixed(2)}</p>
                       <p className="text-sm text-slate-400">Phnom Penh, or provinces via VET / J&amp;T / ZTO / L192 Express</p>
                     </div>
                   </label>
@@ -429,6 +383,81 @@ export function Shop() {
                   </div>
                 )}
 
+                {error && <p className="alert mt-3">{error}</p>}
+                <div className="mt-5 flex flex-wrap gap-3">
+                  <button className="btn-text" type="button" onClick={() => setStep('customize')}>
+                    Back
+                  </button>
+                  <button
+                    className="btn-primary flex-1 justify-center"
+                    type="button"
+                    onClick={() => {
+                      if (delivery.method === 'delivery' && !delivery.address.trim()) {
+                        setError('Enter your delivery address.');
+                        return;
+                      }
+                      setError('');
+                      setStep('payment');
+                    }}
+                  >
+                    Continue
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Step 4 — payment method + pay */}
+            {step === 'payment' && (
+              <div className="panel shop-checkout p-6">
+                <h2 className="text-xl font-bold text-white">Payment</h2>
+
+                <div className="shop-summary mt-4">
+                  <div className="shop-summary-row">
+                    <span>Quantity</span>
+                    <div className="qty-stepper">
+                      <button type="button" onClick={() => setCount((c) => Math.max(1, c - 1))} aria-label="Decrease quantity">
+                        <Minus size={15} />
+                      </button>
+                      <span>{count}</span>
+                      <button type="button" onClick={() => setCount((c) => Math.min(99, c + 1))} aria-label="Increase quantity">
+                        <Plus size={15} />
+                      </button>
+                    </div>
+                  </div>
+                  {selectedProduct && (
+                    <div className="shop-summary-row">
+                      <span>
+                        {selectedProduct.name} × {count}
+                      </span>
+                      <span>${(selectedProduct.effectivePrice * count).toFixed(2)}</span>
+                    </div>
+                  )}
+                  {card.name && (
+                    <div className="shop-summary-row">
+                      <span>Name on card</span>
+                      <span className="truncate">{card.name}</span>
+                    </div>
+                  )}
+                  {card.handle && (
+                    <div className="shop-summary-row">
+                      <span>Handle</span>
+                      <span className="truncate">@{card.handle}</span>
+                    </div>
+                  )}
+                  <div className="shop-summary-row">
+                    <span>Delivery</span>
+                    <span className="truncate">
+                      {delivery.method === 'pickup'
+                        ? 'Pickup — free'
+                        : `${delivery.area === 'province' ? `Province · ${delivery.courier}` : 'Phnom Penh'} · $${deliveryFee.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <div className="shop-summary-row total">
+                    <span>Total</span>
+                    <span>${total.toFixed(2)}</span>
+                  </div>
+                </div>
+
                 <p className="field-label mt-5">Payment method</p>
                 <div
                   style={{
@@ -453,7 +482,7 @@ export function Shop() {
 
                 {error && <p className="alert mt-3">{error}</p>}
                 <div className="mt-5 flex flex-wrap gap-3">
-                  <button className="btn-text" type="button" onClick={() => setStep('customize')}>
+                  <button className="btn-text" type="button" onClick={() => setStep('delivery')}>
                     Back
                   </button>
                   <button className="btn-primary flex-1 justify-center" type="button" onClick={pay} disabled={submitting}>

@@ -2266,6 +2266,62 @@ a {
   --on-primary: #ffffff;
   --ring: rgba(0, 0, 0, 0.12);
 }
+/* Midnight — deep navy with a gold accent (luxury). */
+.theme-midnight,
+.public-page.theme-midnight {
+  --page-bg:
+    radial-gradient(120% 60% at 50% -10%, rgba(212, 175, 55, 0.1), transparent 60%),
+    linear-gradient(160deg, #030712, #0b1120 70%, #101a33);
+  --surface: rgba(10, 16, 32, 0.55);
+  --surface-solid: #0b1220;
+  --border: rgba(212, 175, 55, 0.24);
+  --text: #f8f6ee;
+  --muted: #9aa3b8;
+  --primary: #d4af37;
+  --on-primary: #1a1403;
+  --ring: rgba(212, 175, 55, 0.4);
+}
+/* Ember — charcoal warmed by molten red-orange. */
+.theme-ember,
+.public-page.theme-ember {
+  --page-bg:
+    radial-gradient(120% 60% at 50% 110%, rgba(239, 68, 68, 0.22), transparent 60%),
+    linear-gradient(160deg, #0c0a09, #1c1210 65%, #2b1410);
+  --surface: rgba(30, 15, 12, 0.55);
+  --surface-solid: #1c100c;
+  --border: rgba(251, 113, 90, 0.22);
+  --text: #fef2f2;
+  --muted: #d6a49a;
+  --primary: #f05a3c;
+  --on-primary: #2b0a04;
+  --ring: rgba(240, 90, 60, 0.42);
+}
+/* Candy — pastel pink light theme. */
+.theme-candy,
+.public-page.theme-candy {
+  --page-bg: linear-gradient(160deg, #fdf2f8, #fce7f3 60%, #fbcfe8);
+  --surface: rgba(255, 255, 255, 0.85);
+  --surface-solid: #ffffff;
+  --border: rgba(219, 39, 119, 0.16);
+  --text: #4a0d2b;
+  --muted: #9d5678;
+  --primary: #db2777;
+  --on-primary: #ffffff;
+  --ring: rgba(219, 39, 119, 0.25);
+}
+/* Mocha — warm coffee browns with cream text. */
+.theme-mocha,
+.public-page.theme-mocha {
+  --page-bg: linear-gradient(160deg, #140d09, #2a1c12 60%, #47301e);
+  --surface: rgba(38, 26, 18, 0.55);
+  --surface-solid: #241811;
+  --border: rgba(214, 178, 138, 0.22);
+  --text: #faf3e8;
+  --muted: #c4a888;
+  --primary: #d6a35c;
+  --on-primary: #2b1a06;
+  --ring: rgba(214, 163, 92, 0.4);
+}
 
 /* Token-aware button-style variants (live page + preview). */
 .public-page.button-glass .profile-link {

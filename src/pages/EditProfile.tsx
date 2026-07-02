@@ -19,8 +19,12 @@ const themes: ThemeName[] = [
   'ocean',
   'rose',
   'aurora',
+  'midnight',
+  'ember',
+  'mocha',
   'mono',
   'light',
+  'candy',
   'minimal',
 ];
 const buttonStyles: ButtonStyle[] = ['pill', 'rounded', 'square', 'glass', 'outline', 'soft'];
@@ -43,6 +47,10 @@ const themePrimary: Record<ThemeName, string> = {
   mono: '#fafafa',
   light: '#2563eb',
   minimal: '#18181b',
+  midnight: '#d4af37',
+  ember: '#f05a3c',
+  candy: '#db2777',
+  mocha: '#d6a35c',
 };
 
 export function EditProfile() {

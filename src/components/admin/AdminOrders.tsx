@@ -1,36 +1,48 @@
 import { useEffect, useState } from 'react';
-import { Download, Package, Send } from 'lucide-react';
+import { Download, Package, Search, Send } from 'lucide-react';
 import { api } from '../../lib/api';
 import { ORDER_STAGES, stageLabel, type Order, type OrderStage } from '../../lib/types';
 
 const STATUS_FILTERS = ['all', 'pending', 'paid', 'expired'] as const;
 type StatusFilter = (typeof STATUS_FILTERS)[number];
+type StageFilter = 'all' | OrderStage;
 
 export function AdminOrders() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [status, setStatus] = useState<StatusFilter>('all');
+  const [stageFilter, setStageFilter] = useState<StageFilter>('all');
+  const [query, setQuery] = useState('');
+  const [stageCounts, setStageCounts] = useState<Record<string, number>>({});
   const [unshippedOnly, setUnshippedOnly] = useState(false);
   const [error, setError] = useState('');
   const [exporting, setExporting] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState('');
 
-  function filterQuery(currentStatus: StatusFilter, currentUnshipped: boolean) {
+  function filterQuery() {
     const params = new URLSearchParams();
-    if (currentStatus !== 'all') params.set('status', currentStatus);
-    if (currentUnshipped) params.set('fulfilled', 'false');
+    if (status !== 'all') params.set('status', status);
+    if (stageFilter !== 'all') params.set('stage', stageFilter);
+    if (query.trim()) params.set('q', query.trim());
+    if (unshippedOnly) params.set('fulfilled', 'false');
     return params.toString();
   }
 
   useEffect(() => {
-    api
-      .get(`/admin/orders?${filterQuery(status, unshippedOnly)}`)
-      .then(({ data }) => {
-        setOrders(data.orders ?? []);
-        setError('');
-      })
-      .catch(() => setError('Could not load orders.'));
-  }, [status, unshippedOnly]);
+    // Small debounce so typing in the search box doesn't fire per keystroke.
+    const t = window.setTimeout(() => {
+      api
+        .get(`/admin/orders?${filterQuery()}`)
+        .then(({ data }) => {
+          setOrders(data.orders ?? []);
+          setStageCounts(data.stageCounts ?? {});
+          setError('');
+        })
+        .catch(() => setError('Could not load orders.'));
+    }, 250);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status, stageFilter, query, unshippedOnly]);
 
   const replace = (updated: Order) => setOrders((prev) => prev.map((o) => (o._id === updated._id ? updated : o)));
 
@@ -64,7 +76,7 @@ export function AdminOrders() {
     try {
       // Auth-gated endpoint: fetch as a blob through `api` (carries the bearer
       // token) rather than a plain link, then trigger a client-side download.
-      const { data } = await api.get(`/admin/orders.csv?${filterQuery(status, unshippedOnly)}`, {
+      const { data } = await api.get(`/admin/orders.csv?${filterQuery()}`, {
         responseType: 'blob',
       });
       const url = URL.createObjectURL(data);
@@ -108,6 +120,39 @@ export function AdminOrders() {
         </button>
       </div>
 
+      {/* Search + fulfillment pipeline overview (counts of paid orders per stage). */}
+      <div className="mb-4 flex flex-wrap items-center gap-3">
+        <label className="relative block" style={{ minWidth: 260, flex: '1 1 260px' }}>
+          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+          <input
+            className="input w-full"
+            style={{ paddingLeft: '2.2rem' }}
+            placeholder="Search reference, buyer or @handle…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            className={`${stageFilter === 'all' ? 'btn-primary' : 'btn-text'} justify-center`}
+            onClick={() => setStageFilter('all')}
+          >
+            All stages
+          </button>
+          {ORDER_STAGES.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={`${stageFilter === s ? 'btn-primary' : 'btn-text'} justify-center`}
+              onClick={() => setStageFilter((cur) => (cur === s ? 'all' : s))}
+            >
+              {stageLabel(s)} · {stageCounts[s] ?? 0}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {error && <p className="text-sm text-slate-400">{error}</p>}
       <div className="space-y-3">
         {!error && orders.length === 0 && <p className="text-sm text-slate-400">No orders found.</p>}
@@ -118,10 +163,10 @@ export function AdminOrders() {
                 {order.items.map((i) => `${i.name} ×${i.qty}`).join(', ')} · ${order.amount.toFixed(2)}
               </p>
               <p className="text-sm text-slate-400">
-                {order.customer.name} · {order.customer.phone}
+                {[order.customer.name, order.customer.phone].filter(Boolean).join(' · ')}
                 {order.telegramUsername && (
                   <>
-                    {' · '}
+                    {order.customer.name || order.customer.phone ? ' · ' : ''}
                     <a
                       className="text-sky-300"
                       href={`https://t.me/${order.telegramUsername}`}
@@ -133,6 +178,13 @@ export function AdminOrders() {
                   </>
                 )}
               </p>
+              {order.cardDesign?.template && (
+                <p className="text-sm text-slate-400">
+                  🎨 {order.cardDesign.template}
+                  {order.cardDesign.name ? ` — “${order.cardDesign.name}”` : ''}
+                  {order.cardDesign.handle ? ` · @${order.cardDesign.handle}` : ''}
+                </p>
+              )}
               {order.delivery?.method === 'delivery' ? (
                 <p className="text-sm text-slate-400">
                   🚚 {order.delivery.area === 'province' ? `Province · ${order.delivery.courier}` : 'Phnom Penh'} — {order.delivery.address}

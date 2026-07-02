@@ -1,6 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import axios from 'axios';
 import { api } from '../lib/api';
 import { createLocalAccount, loginLocalAccount, readLocalAccountUser, saveLocalUser } from '../lib/localStore';
 import type { User } from '../lib/types';
@@ -95,9 +96,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { data } = await api.get('/auth/me');
         const nextUser = normalizeUser(data.user);
         if (alive) setUser(nextUser);
-      } catch {
-        localStorage.removeItem('onetapz_token');
-        if (alive) setToken(null);
+      } catch (err) {
+        // Only an explicit rejection invalidates the session — a network blip
+        // or 5xx during a deploy/restart must not log the user out for good.
+        const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+        if (status === 401 || status === 403) {
+          localStorage.removeItem('onetapz_token');
+          if (alive) setToken(null);
+        } else if (alive) {
+          setUser(null);
+        }
       } finally {
         if (alive) setLoading(false);
       }

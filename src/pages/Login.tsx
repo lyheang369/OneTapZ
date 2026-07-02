@@ -32,7 +32,7 @@ export function Login() {
     } catch (err) {
       // Surface the server's message (e.g. "Invalid email or password.") to the widget.
       const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
-      throw new Error(msg || 'Could not sign in. Please try again.');
+      throw new Error(msg || 'Could not sign in. Please try again.', { cause: err });
     }
   }
 
