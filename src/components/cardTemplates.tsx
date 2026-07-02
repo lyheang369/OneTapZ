@@ -101,7 +101,8 @@ export const CARD_TEMPLATES: CardTemplate[] = [
       <div style={{ ...baseFace, border: `0.3cqw solid ${INK}`, background: '#fff', color: INK }}>
         <div style={{ position: 'absolute', inset: 0, padding: '9cqw', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
           <div style={{ width: '11cqw', height: '1cqw', background: INK, marginBottom: '5cqw' }} />
-          <h3 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 900, fontSize: '12cqw', lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-0.03em' }}>{name(design)}</h3>
+          {/* Explicit color: page chrome (.shop-card h3) would otherwise repaint it. */}
+          <h3 style={{ margin: 0, fontFamily: DISPLAY, fontWeight: 900, fontSize: '12cqw', lineHeight: 0.95, textTransform: 'uppercase', letterSpacing: '-0.03em', color: INK }}>{name(design)}</h3>
           {design.tagline && <p style={{ margin: '3cqw 0 0', fontSize: '3.4cqw', letterSpacing: '0.22em', textTransform: 'uppercase', color: '#666' }}>{design.tagline}</p>}
         </div>
       </div>
@@ -109,7 +110,7 @@ export const CARD_TEMPLATES: CardTemplate[] = [
     Back: ({ design, qr }) => (
       <div style={{ ...baseFace, border: `0.3cqw solid ${INK}`, background: '#fff', color: INK }}>
         <div style={{ position: 'absolute', inset: 0, padding: '7cqw', display: 'flex', flexDirection: 'column' }}>
-          <h3 style={{ margin: 0, fontWeight: 900, fontSize: '7cqw', textTransform: 'uppercase', letterSpacing: '-0.02em' }}>{name(design)}</h3>
+          <h3 style={{ margin: 0, fontWeight: 900, fontSize: '7cqw', textTransform: 'uppercase', letterSpacing: '-0.02em', color: INK }}>{name(design)}</h3>
           {design.tagline && <p style={{ margin: '1.5cqw 0 0', fontSize: '3.4cqw', color: '#666' }}>{design.tagline}</p>}
           <div style={{ height: '0.2cqw', background: INK, margin: '4cqw 0' }} />
           <div style={{ display: 'flex', gap: '4cqw', alignItems: 'center' }}>

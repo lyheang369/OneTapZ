@@ -5,10 +5,19 @@ import { CardPreview } from '../components/CardPreview';
 import { getTemplate } from '../components/cardTemplates';
 import { useAuth } from '../context/AuthContext';
 import { api } from '../lib/api';
-import type { CardDesign } from '../lib/types';
+import { stageLabel, type CardDesign, type OrderStage } from '../lib/types';
 
 type Product = { id: string; name: string; description: string; price: number; discountPrice: number; effectivePrice: number };
 type CheckoutResult = { reference: string; amount: number; qrCode: string; paymentUrl?: string };
+type MyOrder = {
+  reference: string;
+  items: { name: string; qty: number }[];
+  amount: number;
+  status: 'pending' | 'paid' | 'expired';
+  stage?: OrderStage;
+  deliveryMethod?: 'pickup' | 'delivery';
+  createdAt?: string;
+};
 
 const STEPS = [
   { id: 'design', label: 'Design' },
@@ -81,6 +90,17 @@ export function Shop() {
       })
       .catch(() => {});
   }, []);
+
+  // The buyer's past orders — refetched after a successful payment so the new
+  // order shows up without a reload.
+  const [myOrders, setMyOrders] = useState<MyOrder[]>([]);
+  useEffect(() => {
+    if (!user) return;
+    api
+      .get('/shop/my-orders')
+      .then(({ data }) => setMyOrders(data.orders ?? []))
+      .catch(() => {});
+  }, [user, status]);
 
   const selectedProduct = useMemo(() => products.find((p) => p.id === selectedId) ?? null, [products, selectedId]);
   const itemsTotal = selectedProduct ? selectedProduct.effectivePrice * count : 0;
@@ -493,6 +513,32 @@ export function Shop() {
               </div>
             )}
           </>
+        )}
+
+        {user && myOrders.length > 0 && (
+          <div className="panel mt-8 p-6">
+            <h2 className="text-lg font-bold text-white">Your orders</h2>
+            <div className="mt-3 flex flex-col">
+              {myOrders.map((o) => (
+                <Link
+                  key={o.reference}
+                  to={`/order/${o.reference}`}
+                  className="flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-white/10 py-3 text-sm text-slate-300 hover:text-white"
+                >
+                  <span className="min-w-0 flex-1 truncate font-semibold text-white">
+                    {o.items.map((i) => `${i.name} ×${i.qty}`).join(', ')}
+                  </span>
+                  <span>${o.amount.toFixed(2)}</span>
+                  <span className={o.status === 'paid' ? 'status-on' : 'status-off'}>
+                    {o.status === 'paid' ? stageLabel(o.stage, o.deliveryMethod) : o.status}
+                  </span>
+                  <span className="text-xs text-slate-500">
+                    {o.createdAt ? new Date(o.createdAt).toLocaleDateString() : ''}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
         )}
       </section>
 

@@ -321,6 +321,28 @@ router.get(
   }),
 );
 
+// The logged-in buyer's own orders (matched by their account's Telegram id) —
+// powers the "Your orders" list in the shop. Invoice-safe fields only.
+router.get(
+  '/my-orders',
+  asyncHandler(async (req, res) => {
+    const user = await getOptionalUser(req);
+    if (!user?.telegramId) return res.json({ orders: [] });
+    const orders = await Order.find({ telegramId: user.telegramId }).sort('-createdAt').limit(20);
+    res.json({
+      orders: orders.map((o) => ({
+        reference: o.reference,
+        items: o.items.map((i) => ({ name: i.name, qty: i.qty })),
+        amount: o.amount,
+        status: o.status,
+        stage: o.stage,
+        deliveryMethod: o.delivery?.method || 'pickup',
+        createdAt: o.createdAt,
+      })),
+    });
+  }),
+);
+
 // Public invoice lookup by reference (settles status on view). Returns only
 // invoice-safe fields — no phone or Telegram id.
 router.get(
